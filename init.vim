@@ -6,6 +6,8 @@ set clipboard=unnamed,unnamedplus
 
 let maplocalleader=","
 autocmd FileType tidal setlocal commentstring=--\ %s
+autocmd FileType tidal syntax off
+autocmd FileType tidal GitGutterDisable
 nnoremap <localleader>n :NERDTreeFocus<CR>
 nnoremap <localleader>N :NERDTreeToggle<CR>
 inoremap <C-b> <BS>
