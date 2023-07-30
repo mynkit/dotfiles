@@ -20,6 +20,10 @@ let g:scSplitDirection = "v"
 let g:scSplitSize = 30
 let g:NERDTreeWinSize = 15
 
+let g:airline_theme = 'papercolor'
+let g:airline#extensions#tabline#enabled = 1
+let g:airline_powerline_fonts = 1
+
 call plug#begin()
 Plug 'mynkit/vim-tidal', {'branch': 'dev/add-command'}
 Plug 'vim-airline/vim-airline'
@@ -30,7 +34,7 @@ Plug 'davidgranstrom/scnvim'
 call plug#end()
 
 
-lua << EOF
-require('scnvim').setup()
-EOF
+" lua << EOF
+" require('scnvim').setup()
+" EOF
 
