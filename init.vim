@@ -3,10 +3,12 @@ set tabstop=2
 set shiftwidth=2
 " クリップボードの有効化
 set clipboard=unnamed,unnamedplus
+set number
 
 let maplocalleader=","
 autocmd FileType tidal setlocal commentstring=--\ %s
 autocmd FileType tidal GitGutterDisable
+autocmd FileType tidal set nonumber
 nnoremap <localleader>n :NERDTreeFocus<CR>
 nnoremap <localleader>N :NERDTreeToggle<CR>
 inoremap <C-b> <BS>
