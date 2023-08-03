@@ -33,6 +33,8 @@ Plug 'vim-airline/vim-airline-themes'
 Plug 'mbbill/undotree'
 Plug 'preservim/nerdtree'
 Plug 'davidgranstrom/scnvim'
+Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries' }
+Plug 'neoclide/coc.nvim', { 'branch': 'release' }
 call plug#end()
 
 
