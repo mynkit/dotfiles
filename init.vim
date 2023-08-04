@@ -3,10 +3,12 @@ set tabstop=2
 set shiftwidth=2
 " クリップボードの有効化
 set clipboard=unnamed,unnamedplus
+set number
 
 let maplocalleader=","
 autocmd FileType tidal setlocal commentstring=--\ %s
 autocmd FileType tidal GitGutterDisable
+autocmd FileType tidal set nonumber
 nnoremap <localleader>n :NERDTreeFocus<CR>
 nnoremap <localleader>N :NERDTreeToggle<CR>
 inoremap <C-b> <BS>
@@ -31,6 +33,8 @@ Plug 'vim-airline/vim-airline-themes'
 Plug 'mbbill/undotree'
 Plug 'preservim/nerdtree'
 Plug 'davidgranstrom/scnvim'
+Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries' }
+Plug 'neoclide/coc.nvim', { 'branch': 'release' }
 call plug#end()
 
 
