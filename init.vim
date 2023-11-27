@@ -11,7 +11,7 @@ autocmd FileType tidal GitGutterDisable
 autocmd FileType tidal set nonumber
 nnoremap <localleader>n :NERDTreeFocus<CR>
 nnoremap <localleader>N :NERDTreeToggle<CR>
-inoremap <C-b> <BS>
+inoremap <C-x> <BS>
 inoremap <C-k> <Up>
 inoremap <C-j> <Down>
 inoremap <C-h> <Left>
