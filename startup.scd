@@ -5,10 +5,10 @@ OSCFunc({
 	addr.sendBundle(latency, msg)
 },'dirt/play').fix;
 Server.default.options.numOutputBusChannels = 12;
-Server.default.options.memSize = 8192 * 64;
+Server.default.options.memSize = 8192 * 128;
 Server.default.options.bindAddress = "0.0.0.0";
 Server.default.options.numWireBufs = 64;
-Server.default.options.maxNodes = 1024 * 64;
+Server.default.options.maxNodes = 1024 * 128;
 // シンセの定義
 SynthDef("SinOscSynthBend", {
 	arg out, sustain=1, decay=0, pan=0, freq=110, accelerate=0, slide=0, sustainpedal=0.5, vibratoFreq=10, vibratoDepth=0, synthrev=0;
@@ -208,7 +208,7 @@ SynthDef(\zure, {|out, sustain=1, pan, accelerate, freq, decay=0, slide=1, detun
 	sound = LPF.ar(sound, lpfEnv);
 	Out.ar(out, sound*0.5*env);
 }).add;
-SynthDef(\zure2, {|out, sustain=1, pan, accelerate, freq, decay=0, slide=1, detune=1 |
+SynthDef(\zure2, {|out, sustain=1, pan, accelerate, freq, decay=0, slide=1, detune=0.008 |
 	var attrel = (sustain/2).clip(0,0.005);
 	var env = EnvGen.ar(Env.linen(attrel, sustain-(2*attrel), attrel), doneAction:2);
 	var basefreq = freq * Line.kr(1, 1+accelerate, sustain);
@@ -316,7 +316,7 @@ SynthDef("rustling", {
 	arg out, sustain=1, pan;
 	var sig, grazing, pebble, branch, footsteps, env, pitchShift;
 	env = EnvGen.ar(Env.linen(0.2, 0, 0.25, 1, -5), timeScale:sustain, doneAction:2);
-	
+
 	pitchShift=[0.4,0.5,0.6,1.0].choose;
 	grazing=PinkNoise.ar(1);
 	grazing=if(
@@ -327,13 +327,13 @@ SynthDef("rustling", {
 	grazing=LPF.ar(grazing,2000);
 	grazing=HPF.ar(grazing,8000);
 	grazing=grazing*3;
-	
+
 	pebble=LPF.ar(GrayNoise.ar(1), 1000);
 	pebble=LPF.ar(pebble,3000);
 	pebble=HPF.ar(pebble,4000);
 	pebble=pebble*4;
 	pebble=pebble*(EnvGen.ar(Env.linen(sustain*0.6, 1, 0.1, 1)));
-	
+
 	branch=BPF.ar(LPF.ar(WhiteNoise.ar(100), 7500), 1500);
 	branch = Mix.arFill(4, {arg i; branch * 0.5 * EnvGen.ar(Env.new([0,0,1,0],[0.005*(i**(0.clip(0,5)+1)),0,0.04]))});
 	branch=branch*(EnvGen.ar(Env.linen(0, 0, 0.2, 1, -10), timeScale:Rand(0.06,0.11)));
@@ -342,16 +342,16 @@ SynthDef("rustling", {
 	branch=LPF.ar(branch, Rand(3000,5000));
 	branch=branch+(0.1*FreeVerb.ar(branch, 1, 0.8, 0.2));
 	branch=branch*0.017;
-	
+
 	footsteps=SinOsc.ar([65.406,69.296]).dup;
 	footsteps=HPF.ar(footsteps, 300);
 	footsteps=footsteps*(EnvGen.ar(Env.linen(0, 0, 0.2, 1, -5), timeScale:Rand(0.1,0.2)));
 	footsteps=DelayN.ar(footsteps, sustain, sustain*0.1);
 	footsteps=footsteps*0.29;
-	
+
 	sig=(grazing*(Rand(0.0,1.0)))+(pebble*Rand(0.5,1.0))+(branch*(Rand(0.0,1.0)**2))+(footsteps*Rand(0.5,1.0));
 	sig=sig*10;
-	
+
 	Out.ar(out, sig*env);
 }).add;
 SynthDef("higurashi", {
@@ -378,7 +378,7 @@ SynthDef("higurashi", {
 	sound = IFFT(
 		PV_ConformalMap(chain, real.linlin(0.0,1.0,0.01,2.0), imag.linlin(0.00,1.0,0.01,10.0))
 	).tanh;
-	
+
 	env = EnvGen.ar(Env.linen(0, 0, 0.6, 1, -2), timeScale:sustain, doneAction:2);
 	Out.ar(out, sound*env);
 }).add;
@@ -538,7 +538,7 @@ SynthDef(\liminalfm, {
 		Array.fill2D(6, 6, {|r,c| 1.0.rand * 0.25.coin.asInteger * if(r == c, feedback, 1)}),
 	]})
 	);
-	
+
 	var envs = Array.fill(6, { |i|
 		EnvGen.kr(
 			Env.new(
@@ -550,11 +550,11 @@ SynthDef(\liminalfm, {
 			timeScale:sustain,
 		);
 	});
-	
+
 	var ctls = Array.fill(6, { |i|
 		[freq * tremolo * presets[0][i] + presets[1][i], 0, envs[i]]
 	});
-	
+
 	var sound = FM7.ar(ctls, presets[5]) * amps;
 	sound = Mix.ar(sound) * (-15.dbamp);
 	env = if(
