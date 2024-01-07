@@ -596,4 +596,18 @@ SynthDef(\superpiano,{|out, sustain=1, pan, velocity=1, detune=0.1, muffle=1, st
 		tune:0.5, random:0.05, stretch:detune, muffle:0.8*muffle, stereo:stereo);
 	Out.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan, env))
 }).add;
-
+SynthDef(\pad, {
+	| out = 0, amp = 1, freq = 440, gate=1, a = 0.1, s = 10, r = 1|
+	var freqs = { freq * LFNoise2.kr(freq:1,mul:0.01,add:1) }!24;
+	var gen = LFSaw.ar(freq:freqs) * 0.1;
+	var fmod = 1;
+	//var fmod = LFCub.kr(freq:1/12).range(1, LFNoise2.kr(freq:1).range(6,7)); // sharper sound
+	var rqmod = LFNoise2.kr(freq:1/8).range(0.1,1.0);
+	// var modspeed = 1/s;
+	var modspeed = 1/(Rand(0.4,10));
+	// var modspeed = 10; // tremolo sound
+	// var modspeed = 10000*LFNoise2.ar(freq:4/s); // wobble sound (works best with sharper sounding pad)
+	var snd = RLPF.ar(in:gen, freq:SinOsc.kr(modspeed).range(freqs*0.8, freqs*1.2) * fmod, rq:rqmod);
+	// var env = EnvGen.ar(Env.new(levels:[0,1,1,0], times:[a, s, r]), gate, doneAction:2);
+	Out.ar(bus:out, channelsArray:Splay.ar(snd*amp));
+}).add;
