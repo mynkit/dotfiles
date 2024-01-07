@@ -209,7 +209,7 @@ SynthDef(\zure, {|out, sustain=1, pan, accelerate, freq, decay=0, slide=1, detun
 	sound = LPF.ar(sound, lpfEnv);
 	Out.ar(out, sound*0.5*env);
 }).add;
-SynthDef(\zure2, {|out, sustain=1, pan, accelerate, freq, decay=0, slide=1, detune=1 |
+SynthDef(\zure2, {|out, sustain=1, pan, accelerate, freq, decay=0, slide=1, detune=0.008 |
 	var attrel = (sustain/2).clip(0,0.005);
 	var env = EnvGen.ar(Env.linen(attrel, sustain-(2*attrel), attrel), doneAction:2);
 	var basefreq = freq * Line.kr(1, 1+accelerate, sustain);
