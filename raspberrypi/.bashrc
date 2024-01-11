@@ -134,15 +134,25 @@ else
 fi
 
 
-SESSION_NAME="py-session"
+# SESSION_NAME="py-session"
 
-tmux has-session -t $SESSION_NAME 2>/dev/null
+# tmux has-session -t $SESSION_NAME 2>/dev/null
 
-if [ $? != 0 ]; then
-    tmux new-session -d -s $SESSION_NAME 'cd ~/4chspeaker_soundsystem && python ./send_river_bubble_sound_osc.py'
-    echo "tmuxセッション $SESSION_NAME を作成しました。"
-else
-    echo "tmuxセッション $SESSION_NAME は既に存在します。"
-fi
+# if [ $? != 0 ]; then
+#     tmux new-session -d -s $SESSION_NAME 'cd ~/4chspeaker_soundsystem && python ./send_river_bubble_sound_osc.py'
+#     echo "tmuxセッション $SESSION_NAME を作成しました。"
+# else
+#     echo "tmuxセッション $SESSION_NAME は既に存在します。"
+# fi
 
+# SESSION_NAME="tidal-session"
+
+# tmux has-session -t $SESSION_NAME 2>/dev/null
+
+# if [ $? != 0 ]; then
+#     tmux new-session -d -s $SESSION_NAME 'ghci -ghci-script ~/4chspeaker_soundsystem/BootAndSoundTidal.hs'
+#     echo "tmuxセッション $SESSION_NAME を作成しました。"
+# else
+#     echo "tmuxセッション $SESSION_NAME は既に存在します。"
+# fi
 

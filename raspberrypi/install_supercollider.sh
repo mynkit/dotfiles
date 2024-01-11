@@ -5,7 +5,7 @@ sudo apt-get install fcitx-mozc
 #ビルドに必要なライブラリをインストール
 sudo apt-get upgrade
 sudo apt-get dist-upgrade
-sudo apt-get install libjack-jackd2-dev libsndfile1-dev libasound2-dev libavahi-client-dev libreadline-dev libfftw3-dev libxt-dev libudev-dev libncurses5-dev cmake git qttools5-dev qttools5-dev-tools qtdeclarative5-dev libqt5svg5-dev qjackctl libxcb-xinerama0 neovim
+sudo apt-get install libjack-jackd2-dev libsndfile1-dev libasound2-dev libavahi-client-dev libreadline-dev libfftw3-dev libxt-dev libudev-dev libncurses5-dev cmake git qttools5-dev qttools5-dev-tools qtdeclarative5-dev libqt5svg5-dev qjackctl libxcb-xinerama0 neovim xscreensaver
 
 sh -c 'curl -fLo "${XDG_DATA_HOME:-$HOME/.local/share}"/nvim/site/autoload/plug.vim --create-dirs \
        https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim'
