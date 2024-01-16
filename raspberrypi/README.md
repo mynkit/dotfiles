@@ -4,17 +4,32 @@
 
 Raspberry Pi4 Model B (8GB RAM)
 
-## SuperCollider & TidalCycles
+## SuperCollider
 
-
-## openFrameworks
-
+install supercollider
 
 ```
-cd ~/openFrameworks/of_v0.12.0_linuxarmv6l_release/apps/myApps/
-git clone -b feature/for_raspberrypi git@github.com:mynkit/ofxPhysicalSound.git
-cd ~/openFrameworks/of_v0.12.0_linuxarmv6l_release/addons/
-git clone -b add_method git@github.com:mynkit/ofxBullet.git
+/bin/bash/ install_supercollider.sh 
 ```
+
+install sc3-plugins
+
+```
+install_sc3-plugins.sh
+```
+
+install superdirt & other packages
+
+`sclang`を実行後、
+
+```
+Quarks.install("https://github.com/mynkit/SuperDirt.git");
+Quarks.install("https://github.com/ambisonictoolkit/atk-sc3.git");
+thisProcess.recompile();
+Atk.downloadKernels;
+Atk.downloadMatrices;
+Atk.downloadSounds;
+```
+
 
 
