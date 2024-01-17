@@ -611,3 +611,19 @@ SynthDef(\pad, {
 	// var env = EnvGen.ar(Env.new(levels:[0,1,1,0], times:[a, s, r]), gate, doneAction:2);
 	Out.ar(bus:out, channelsArray:Splay.ar(snd*amp));
 }).add;
+SynthDef("rain2", {
+	arg amp=1;
+	var out=0;
+	p=PinkNoise.ar(1!2);
+	p=HPF.ar(p, 1600);
+	p=LPF.ar(p, 4390);
+	Out.ar(out, p*0.05*amp);
+}, [1]).add;
+SynthDef("river", {
+	arg amp=1;
+	var out=0;
+	p=PinkNoise.ar(1!2);
+	p=HPF.ar(p, 475);
+	p=LPF.ar(p, 2500);
+	Out.ar(out, p*0.05*amp);
+}, [1]).add;
