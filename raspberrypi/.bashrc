@@ -120,7 +120,7 @@ if ! shopt -oq posix; then
   fi
 fi
 
-/bin/bash ~/4chspeaker_soundsystem/update_jackdrc.sh
+/bin/bash ~/update_jackdrc.sh
 
 SESSION_NAME="sc-session"
 
@@ -133,26 +133,4 @@ else
     echo "tmuxセッション $SESSION_NAME は既に存在します。"
 fi
 
-
-# SESSION_NAME="py-session"
-
-# tmux has-session -t $SESSION_NAME 2>/dev/null
-
-# if [ $? != 0 ]; then
-#     tmux new-session -d -s $SESSION_NAME 'cd ~/4chspeaker_soundsystem && python ./send_river_bubble_sound_osc.py'
-#     echo "tmuxセッション $SESSION_NAME を作成しました。"
-# else
-#     echo "tmuxセッション $SESSION_NAME は既に存在します。"
-# fi
-
-# SESSION_NAME="tidal-session"
-
-# tmux has-session -t $SESSION_NAME 2>/dev/null
-
-# if [ $? != 0 ]; then
-#     tmux new-session -d -s $SESSION_NAME 'ghci -ghci-script ~/4chspeaker_soundsystem/BootAndSoundTidal.hs'
-#     echo "tmuxセッション $SESSION_NAME を作成しました。"
-# else
-#     echo "tmuxセッション $SESSION_NAME は既に存在します。"
-# fi
-
+./openFrameworks/of_v0.11.2_linuxarmv6l_release/apps/myApps/4chSpeakerUI/bin/4chSpeakerUI
