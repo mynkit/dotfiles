@@ -356,10 +356,9 @@ SynthDef("rustling", {
 	Out.ar(out, sig*env);
 }).add;
 SynthDef("higurashi", {
-	arg out, sustain=1, decay=0, accelerate=0, slide=0;
-	var freq, fglide, detune, sound, sig1, env, parFreq, freqDiffRate, lpf, chain, vibratoFreq=8, vibratoDepth=0.4, real=0.4, imag=0;
+	arg out, freq=4186, sustain=1, decay=0, accelerate=0, slide=0;
+	var fglide, detune, sound, sig1, env, parFreq, freqDiffRate, lpf, chain, vibratoFreq=8, vibratoDepth=0.4, real=0.4, imag=0;
 	detune = 1.0;
-	freq = 4186.009;
 	freq = freq - (456.699*slide);
 	freq = freq *(1+((LFPar.ar(vibratoFreq)+1)*(vibratoDepth/50)));
 	freqDiffRate = 0.05;
@@ -367,13 +366,13 @@ SynthDef("higurashi", {
 	lpf = freq+Rand(1000, 3000);
 	freq = freq*(1+((LFPar.ar(vibratoFreq)+1)*(vibratoDepth/50)));
 	sig1 = Saw.ar([freq,freq]);
-	sig1 = sig1+0.5*Saw.ar([(freq*2),(freq*2)]);
+	sig1 = sig1+0.1*Saw.ar([(freq*2),(freq*2)]);
 	sig1 = sig1+0.2*Saw.ar([(freq/2),(freq/2)]);
 	sig1 = sig1 + (PinkNoise.ar(1!2)/20);
 	sig1 = LPF.ar(sig1, lpf);
 	sound = sig1 / 2;
-	parFreq = 1 + EnvGen.ar(Env.linen(0, 0, 0.6, 5, -2), timeScale:sustain);
-	sound = sound*LFPar.kr(parFreq); // tremoro
+	parFreq = Rand(7, 9) + EnvGen.ar(Env.linen(0, 0, 0.6, 5, -2), timeScale:sustain);
+	sound = sound*Pulse.kr(parFreq); // tremoro
 	// spectral-conformer
 	chain = sound.asArray.collect { |x| FFT(LocalBuf(2048), x) };
 	sound = IFFT(
