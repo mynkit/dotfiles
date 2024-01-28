@@ -6,6 +6,9 @@ alias view="nvim -R"
 # openFrameworks
 export DISPLAY=:0
 
+# SuperCollider
+export QT_QPA_PLATFORM=offscreen
+
 # ~/.bashrc: executed by bash(1) for non-login shells.
 # see /usr/share/doc/bash/examples/startup-files (in the package bash-doc)
 # for examples
@@ -120,7 +123,7 @@ if ! shopt -oq posix; then
   fi
 fi
 
-/bin/bash ~/openFrameworks/of_v0.12.0_linuxaarch64_release/apps/myApps/4chSpeakerUI/update_jackdrc.sh
+/bin/bash ~/openFrameworks/of_v0.11.2_linuxarmv6l_release/apps/myApps/4chSpeakerUI/update_jackdrc.sh
 
 SESSION_NAME="sc-session"
 
