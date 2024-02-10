@@ -567,7 +567,7 @@ SynthDef(\liminalfm, {
 SynthDef("simpleSawWave", {
 	arg amp=1, sustain=1, pan=0, freq=110, accelerate=0, lpf=5000, out=0;
 	var sound, env;
-	freq = freq * Line.kr(1, 1+accelerate, 0.5);
+	freq = freq * Line.kr(1, 1+accelerate, min(0.5, sustain));
 	sound = Saw.ar(freq).dup!2 * 0.5;
 	sound = LPF.ar(sound, lpf);
 	sound=NumChannels.ar([sound*(1-pan)/2, sound*(1+pan)/2], 2);
@@ -577,7 +577,7 @@ SynthDef("simpleSawWave", {
 SynthDef("simpleSineWave", {
 	arg amp=1, sustain=1, pan=0, freq=110, accelerate=0, lpf=5000, out=0;
 	var sound, env;
-	freq = freq * Line.kr(1, 1+accelerate, 0.5);
+	freq = freq * Line.kr(1, 1+accelerate, min(0.5, sustain));
 	sound = SinOsc.ar(freq).dup!2 * 0.5;
 	sound = LPF.ar(sound, lpf);
 	sound=NumChannels.ar([sound*(1-pan)/2, sound*(1+pan)/2], 2);
@@ -588,7 +588,7 @@ SynthDef("vibratoSineWave", {
 	arg amp=1, sustain=1, pan=0, freq=110, accelerate=0, lpf=5000, vibratoFreq=10, vibratoDepth=0, out=0;
 	var sound, env;
 	freq = freq *(1+((LFPar.ar(vibratoFreq)+1)*(vibratoDepth/50)));
-	freq = freq * Line.kr(1, 1+accelerate, 0.5);
+	freq = freq * Line.kr(1, 1+accelerate, min(0.5, sustain));
 	sound = SinOsc.ar(freq).dup!2 * 0.5;
 	sound = LPF.ar(sound, lpf);
 	sound=NumChannels.ar([sound*(1-pan)/2, sound*(1+pan)/2], 2);
