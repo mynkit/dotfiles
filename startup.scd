@@ -574,6 +574,16 @@ SynthDef("simpleSawWave", {
 	env = EnvGen.ar(Env.linen(0.1, 0, 0.6, 1, -3), timeScale:sustain, doneAction:2);
 	Out.ar(out, sound*env*amp);
 }).add;
+SynthDef("softSawWave", {
+	arg amp=1, sustain=1, pan=0, freq=110, accelerate=0, lpf=5000, out=0;
+	var sound, env;
+	freq = freq * Line.kr(1, 1+accelerate, max(0.5, sustain));
+	sound = Saw.ar(freq).dup!2 * 0.5;
+	sound = LPF.ar(sound, Line.kr(lpf, lpf*0.01, sustain));
+	sound=NumChannels.ar([sound*(1-pan)/2, sound*(1+pan)/2], 2);
+	env = EnvGen.ar(Env.linen(0.1, 0, 0.6, 1, -3), timeScale:sustain, doneAction:2);
+	Out.ar(out, sound*env*amp);
+}).add;
 SynthDef("simpleSineWave", {
 	arg amp=1, sustain=1, pan=0, freq=110, accelerate=0, lpf=5000, out=0;
 	var sound, env;
