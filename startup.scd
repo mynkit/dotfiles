@@ -116,6 +116,40 @@ SynthDef("superhammondBend", {
 	// sound = Pan2.ar(sound, FSinOsc.kr(1.43));
 	Out.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan, env));
 }).add;
+SynthDef(\superhammondSc, {|out, amp=1, decay=0, pan, freq, vibrato=0.5, vrate=7,
+	voice=0, perc=0, percf=2, accelerate=0, speed=1, hpf=700, tremolorate = 0.2, tremolodepth = 0.2|
+	var freqs, amps, sound, click, env, ampscale, attrel, tremolowave;
+	// attrel = (sustain/2).clip(0,0.005);
+	// freq = freq * DirtFreqScale.kr(speed, accelerate, sustain);
+	freqs = [0.5, 1.4988, 1, 2, 2.9976, 4, 5.0409, 5.9953, 8] * freq;
+	freqs = 2**(freqs < 63) * freqs; // fold up bottom register
+	freqs = freqs / (2**(freqs > 6000)); // fold down high harmonics
+	freqs = freqs / (2**(freqs > 6000)); // do it again for the really high notes
+	amps = SelectX.kr(voice, #[
+		[1, 4, 5, 4, 3, 1, 0, 0, 0], // 0: bass violin 16'
+		[0, 0, 8, 0, 4, 0, 0, 0, 0], // 1: tibia 8'
+		[0, 7, 8, 1, 2, 0, 0, 0, 0], // 2: bassoon 8'
+		[0, 0, 7, 8, 8, 8, 8, 7, 2], // 3: french trumpet 8'
+		[4, 0, 5, 5, 4, 5, 3, 3, 6], // 4: string ensemble
+		[8, 8, 5, 3, 2, 4, 5, 8, 8], // 5: Blues
+		[8, 8, 8, 0 ,0, 0, 0, 0, 3], // 6: Jazz 1
+		[8, 8, 8, 8, 8, 8, 8, 8, 8], // 7: Full Shout
+		[8, 0, 0, 0, 0, 0, 8, 8, 8], // 8: Bro' Jack
+		[0, 0, 8, 8, 0, 0, 0, 0, 0]  // 9: Jazz 2
+	]);
+	amps = amps - [0, 0, 0, 0, 0, 0, 0.5, 1, 1.5]; // damp brilliance a bit
+	amps = 2**(amps-8);
+	click = WhiteNoise.ar(1) * XLine.ar(1,1e-6, 0.1);
+	sound = 0.5 * Mix.ar( SinOsc.ar(freqs*(2*click+1), (2pi ! 9).rand, amps/amps.sum) );
+	sound = perc * 0.5 * SinOsc.ar(freq*percf, 2pi.rand) * XLine.ar(1,1e-6,2*decay+1) + sound;
+	sound = sound + BAllPass.ar(sound, 1000*LFTri.kr(vrate,0,vibrato/2,1));
+	sound = HPF.ar(sound, hpf);
+	sound = FreeVerb.ar(sound, 0.33, 0.5);
+	tremolodepth = tremolodepth.clip(0, 1) * 0.5;
+	tremolowave = (1 - tremolodepth) + SinOsc.ar(tremolorate, 0.5pi, tremolodepth);
+	sound = sound * tremolowave;
+	Out.ar(out, amp*sound!2);
+}).add;
 SynthDef("toumeiSynth", {
 	arg out, sustain=1, decay=0, pan, freq, vibrato=0.5, vrate=7, voice=0, perc=0, percf=2, accelerate=0, slide=0, sustainpedal=0.5;
 	var freqs, amps, sound, click, env, ampscale, attrel, fglide, bendSustain;
