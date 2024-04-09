@@ -189,7 +189,7 @@ SynthDef("bassSynth", {
 	var freqs, amps, sound, click, env, ampscale, attrel, fglide, bendSustain;
 	bendSustain = sustainpedal;
 	attrel = (sustain/2).clip(0,0.005);
-	env = EnvGen.ar(Env.linen(0, 0, 0.6, 1, 6), timeScale:sustain, doneAction:2);
+	env = EnvGen.ar(Env.linen(0.003, 0, 0.6, 1, 6), timeScale:sustain, doneAction:2);
 	fglide = EnvGen.ar(Env.perc(0.05, 0.3, 1, \lin), timeScale:bendSustain) * (-1*slide/4) + 1;
 	freq = freq * fglide * Line.kr(1, 1+accelerate, bendSustain);
 	freqs = [0.5, 1.4988, 1, 2, 2.9976, 4, 5.0409, 5.9953, 8, 1.001] * freq;
