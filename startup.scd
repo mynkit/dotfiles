@@ -629,14 +629,15 @@ SynthDef("simpleSineWave", {
 	Out.ar(out, sound*env*amp);
 }).add;
 SynthDef("vibratoSineWave", {
-	arg amp=1, sustain=1, pan=0, freq=110, accelerate=0, lpf=5000, vibratoFreq=10, vibratoDepth=0, out=0;
+	arg amp=1, sustain=1, pan=0, freq=110, accelerate=0, lpf=5000, vibratoFreq=10, vibratoDepth=0, octaveMix=0, out=0;
 	var sound, env;
 	freq = freq *(1+((LFPar.ar(vibratoFreq)+1)*(vibratoDepth/50)));
-	freq = freq * Line.kr(1, 1+accelerate, max(0.5, sustain));
+	freq = freq * Line.kr(1, 1+accelerate, 0.5);
 	sound = SinOsc.ar(freq).dup!2 * 0.5;
+	sound = sound + (SinOsc.ar(freq*2).dup!2 * octaveMix * 0.5);
 	sound = LPF.ar(sound, lpf);
 	sound=NumChannels.ar([sound*(1-pan)/2, sound*(1+pan)/2], 2);
-	env = EnvGen.ar(Env.linen(0.01, 0, 0.6, 1, -3), timeScale:sustain, doneAction:2);
+	env = EnvGen.ar(Env.linen(0.03, 0, 0.6, 1, -3), timeScale:sustain, doneAction:2);
 	Out.ar(out, sound*env*amp);
 }).add;
 SynthDef(\superpiano,{|out, sustain=1, pan, velocity=1, detune=0.1, muffle=1, stereo=0.2, freq=440, voice=0 |
