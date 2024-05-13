@@ -681,3 +681,55 @@ SynthDef("river", {
 	p=LPF.ar(p, 2500);
 	Out.ar(out, p*0.05*amp);
 }, [1]).add;
+SynthDef("sawDry", {
+	arg freq = 440, amp = 0.2, parFreq=0, pan2Freq=0, pan=0,
+	vibratoFreq=3, vibratoDepth=0, actave=1, bpf=440;
+	var sig, out=0, chain, in, z, y, oct, left, right, mod;
+	sig = SawDPW.ar(actave*freq*(1+((LFPar.ar(vibratoFreq)+1)*(vibratoDepth/50))), 0, amp);
+	// tremoro
+	sig = if(
+		parFreq>0.1,
+		sig*LFPar.ar(parFreq),
+		if(
+			LFPar.ar(parFreq)>0,
+			sig*(LFPar.ar(parFreq) + (1-(LFPar.ar(parFreq))*((1-(parFreq*10))))),
+			sig*(LFPar.ar(parFreq) + (-1-(LFPar.ar(parFreq))*((1-(parFreq*10))))),
+		)
+	);
+	// panning
+	sig = if(
+		pan2Freq>0.1,
+		Pan2.ar(sig, LFPar.ar(pan2Freq)),
+		Pan2.ar(sig, LFPar.ar(pan2Freq)*pan2Freq*10)
+	);¥
+	sig = sig * 0.1;
+	// sig = LPF.ar(sig, lpf);
+	sig = BPF.ar(sig, bpf);
+	Out.ar(out, sig);
+}, [0, 10, 1, 1, 1, 1, 1, 1, 10, 10, 10]).add;
+SynthDef("sineDry", {
+	arg freq = 440, amp = 0.2, parFreq=0, pan2Freq=0, pan=0,
+	vibratoFreq=3, vibratoDepth=0, actave=1, bpf=440;
+	var sig, out=0, chain, in, z, y, oct, left, right, mod;
+	sig = SinOsc.ar(actave*freq*(1+((LFPar.ar(vibratoFreq)+1)*(vibratoDepth/50))), 0, amp);
+	// tremoro
+	sig = if(
+		parFreq>0.1,
+		sig*LFPar.ar(parFreq),
+		if(
+			LFPar.ar(parFreq)>0,
+			sig*(LFPar.ar(parFreq) + (1-(LFPar.ar(parFreq))*((1-(parFreq*10))))),
+			sig*(LFPar.ar(parFreq) + (-1-(LFPar.ar(parFreq))*((1-(parFreq*10))))),
+		)
+	);
+	// panning
+	sig = if(
+		pan2Freq>0.1,
+		Pan2.ar(sig, LFPar.ar(pan2Freq)),
+		Pan2.ar(sig, LFPar.ar(pan2Freq)*pan2Freq*10)
+	);
+	sig = sig * 0.1;
+	// sig = LPF.ar(sig, lpf);
+	sig = BPF.ar(sig, bpf);
+	Out.ar(out, sig);
+}, [0, 10, 1, 1, 1, 1, 1, 1, 10, 10, 10]).add;
