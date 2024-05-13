@@ -31,7 +31,7 @@ GIT_PS1_SHOWUPSTREAM=auto
 setopt PROMPT_SUBST ; PS1='[%~ %F{green}$(__git_ps1 " %s")%f]\$ '
 
 # Set PATH, MANPATH, etc., for Homebrew.
-eval "$(/opt/homebrew/bin/brew shellenv)"
+eval "$(brew shellenv)"
 eval "$(pyenv init --path)"
 eval "$(anyenv init -)"
 
