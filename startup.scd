@@ -733,3 +733,83 @@ SynthDef("sineDry", {
 	sig = BPF.ar(sig, bpf);
 	Out.ar(out, sig);
 }, [0, 10, 1, 1, 1, 1, 1, 1, 10, 10, 10]).add;
+SynthDef("sine", {
+	arg freq = 440, amp = 0.2, parFreq=0, pan2Freq=0, pan=0,
+	vibratoFreq=3, vibratoDepth=0, actave=1, reverb=0, ice=0, distort=0;
+	var sig, out=0, chain, in, z, y, oct, left, right, mod;
+	sig = SinOsc.ar(actave*freq*(1+((LFPar.ar(vibratoFreq)+1)*(vibratoDepth/50))), 0, amp);
+	// distort
+	mod = CrossoverDistortion.ar(sig, amp: 0.2, smooth: 0.01);
+	mod = mod + (0.1 * distort * DynKlank.ar(`[[60,61,240,3000 + SinOsc.ar(62,mul: 100)],nil,[0.1, 0.1, 0.05, 0.01]], sig));
+	mod = (mod.cubed * 8).softclip * 0.5;
+	sig = SelectX.ar(distort, [sig, mod]);
+	// tremoro
+	sig = if(
+		parFreq>0.1,
+		sig*LFPar.ar(parFreq),
+		if(
+			LFPar.ar(parFreq)>0,
+			sig*(LFPar.ar(parFreq) + (1-(LFPar.ar(parFreq))*((1-(parFreq*10))))),
+			sig*(LFPar.ar(parFreq) + (-1-(LFPar.ar(parFreq))*((1-(parFreq*10))))),
+		)
+	);
+	// panning
+	sig = if(
+		pan2Freq>0.1,
+		Pan2.ar(sig, LFPar.ar(pan2Freq)),
+		Pan2.ar(sig, LFPar.ar(pan2Freq)*pan2Freq*10)
+	);
+	// reverb
+	z = DelayN.ar(sig, 0.048);
+	y = Mix.ar(Array.fill(7,{ CombL.ar(z, 0.1, 1, 15) }));
+	32.do({ y = AllpassN.ar(y, 0.050, [0.050.rand, 0.050.rand], 1) });
+	oct = 1.0 * LeakDC.ar( abs(y) );
+	y = SelectX.ar(ice, [y, ice * oct, DC.ar(0)]);
+	sig = sig + (0.2*y*reverb);
+	sig = sig * 0.1;
+	Out.ar(out, sig);
+}, [0.1, 0.2, 1, 1, 1, 1, 1, 1, 10, 10, 10]).add;
+SynthDef("saw", {
+	arg freq = 440, amp = 0.2, parFreq=0, pan2Freq=0, pan=0,
+	vibratoFreq=3, vibratoDepth=0, actave=1, reverb=0, ice=0, bpf=440;
+	var sig, out=0, chain, in, z, y, oct, left, right, mod;
+	sig = SawDPW.ar(actave*freq*(1+((LFPar.ar(vibratoFreq)+1)*(vibratoDepth/50))), 0, amp);
+	// tremoro
+	sig = if(
+		parFreq>0.1,
+		sig*LFPar.ar(parFreq),
+		if(
+			LFPar.ar(parFreq)>0,
+			sig*(LFPar.ar(parFreq) + (1-(LFPar.ar(parFreq))*((1-(parFreq*10))))),
+			sig*(LFPar.ar(parFreq) + (-1-(LFPar.ar(parFreq))*((1-(parFreq*10))))),
+		)
+	);
+	// panning
+	sig = if(
+		pan2Freq>0.1,
+		Pan2.ar(sig, LFPar.ar(pan2Freq)),
+		Pan2.ar(sig, LFPar.ar(pan2Freq)*pan2Freq*10)
+	);
+	// reverb
+	z = DelayN.ar(sig, 0.048);
+	y = Mix.ar(Array.fill(7,{ CombL.ar(z, 0.1, 1, 15) }));
+	32.do({ y = AllpassN.ar(y, 0.050, [0.050.rand, 0.050.rand], 1) });
+	oct = 1.0 * LeakDC.ar( abs(y) );
+	y = SelectX.ar(ice, [y, ice * oct, DC.ar(0)]);
+	sig = sig + (0.2*y*reverb);
+	sig = sig * 0.1;
+	// sig = LPF.ar(sig, lpf);
+	sig = BPF.ar(sig, bpf);
+	Out.ar(out, sig);
+}, [0.3, 10, 1, 1, 1, 1, 1, 1, 10, 10, 10]).add;
+SynthDef(\zureSc, {|out, amp=1, pan, accelerate, freq, decay=0, detune=1,lpf=8000,hpf=50 |
+	var basefreq = freq;
+	var sound = VarSaw.ar(basefreq, 0, 1);
+	var sound2 = VarSaw.ar(basefreq*(detune/100+1), 0, 1);
+	var sound3 = VarSaw.ar(basefreq*(-1*detune/100+1), 0, 1);
+	sound = sound - DelayN.ar(sound2,0.2)
+	+ DelayN.ar(sound3,0.2);
+	sound = LPF.ar(sound, lpf);
+	sound = HPF.ar(sound, hpf);
+	Out.ar(out, sound!2*0.05*amp);
+}, [0, 1, 0, 0, 0, 0.2]).add;
