@@ -125,6 +125,7 @@ scReverb = pF "scReverb"
 ice = pF "ice"
 freeverb = pF "freeverb"
 damp = pF "damp"
+resi = pF "resi"
 :}
 
 :{
