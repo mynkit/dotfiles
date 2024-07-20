@@ -813,3 +813,18 @@ SynthDef(\zureSc, {|out, amp=1, pan, accelerate, freq, decay=0, detune=1,lpf=800
 	sound = HPF.ar(sound, hpf);
 	Out.ar(out, sound!2*0.05*amp);
 }, [0, 1, 0, 0, 0, 0.2]).add;
+SynthDef(\padDirt, {
+	| out = 0, amp = 1, freq = 440, gate=1, sustain=1|
+	var freqs = { freq * LFNoise2.kr(freq:1,mul:0.01,add:1) }!24;
+	var gen = LFSaw.ar(freq:freqs) * 0.1;
+	var fmod = 1;
+	//var fmod = LFCub.kr(freq:1/12).range(1, LFNoise2.kr(freq:1).range(6,7)); // sharper sound
+	var rqmod = LFNoise2.kr(freq:1/8).range(0.1,1.0);
+	// var modspeed = 1/s;
+	var modspeed = 1/(Rand(0.4,10));
+	// var modspeed = 10; // tremolo sound
+	// var modspeed = 10000*LFNoise2.ar(freq:4/s); // wobble sound (works best with sharper sounding pad)
+	var snd = RLPF.ar(in:gen, freq:SinOsc.kr(modspeed).range(freqs*0.8, freqs*1.2) * fmod, rq:rqmod);
+	var env = EnvGen.ar(Env.linen(0.01, 0, 0.6, 1, -3), timeScale:sustain, doneAction:2);
+	Out.ar(bus:out, channelsArray:Splay.ar(snd*amp*env));
+}).add;
