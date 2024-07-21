@@ -825,6 +825,6 @@ SynthDef(\padDirt, {
 	// var modspeed = 10; // tremolo sound
 	// var modspeed = 10000*LFNoise2.ar(freq:4/s); // wobble sound (works best with sharper sounding pad)
 	var snd = RLPF.ar(in:gen, freq:SinOsc.kr(modspeed).range(freqs*0.8, freqs*1.2) * fmod, rq:rqmod);
-	var env = EnvGen.ar(Env.linen(0.01, 0, 0.6, 1, -3), timeScale:sustain, doneAction:2);
+	var env = EnvGen.ar(Env.linen(0.1, 0, 0.6, 1, -3), timeScale:sustain, doneAction:2);
 	Out.ar(bus:out, channelsArray:Splay.ar(snd*amp*env));
 }).add;
