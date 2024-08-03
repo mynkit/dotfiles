@@ -28,6 +28,12 @@ let g:airline_theme = 'papercolor'
 let g:airline#extensions#tabline#enabled = 1
 let g:airline_powerline_fonts = 1
 
+highlight Normal guibg=NONE ctermbg=NONE
+highlight NonText guibg=NONE ctermbg=NONE
+highlight LineNr guibg=NONE ctermbg=NONE
+highlight Folded guibg=NONE ctermbg=NONE
+highlight EndOfBuffer guibg=NONE ctermbg=NONE
+
 call plug#begin()
 Plug 'mynkit/vim-tidal', {'branch': 'dev/add-command'}
 Plug 'vim-airline/vim-airline'
