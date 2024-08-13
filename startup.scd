@@ -828,3 +828,37 @@ SynthDef(\padDirt, {
 	var env = EnvGen.ar(Env.linen(0.1, 0, 0.6, 1, -3), timeScale:sustain, doneAction:2);
 	Out.ar(bus:out, channelsArray:Splay.ar(snd*amp*env));
 }).add;
+SynthDef("higurashiToy", {
+	arg out, freq=4186, sustain=1, decay=0, accelerate=0, slide=0;
+	var fglide, detune, sound, sig1, env, parFreq, freqDiffRate, vibratoFreq=8, vibratoDepth=0.4;
+	detune = 1.0;
+	freq = freq - (456.699*slide);
+	freq = freq *(1+((LFPar.ar(vibratoFreq)+1)*(vibratoDepth/50)));
+	freqDiffRate = 0.05;
+	freq = freq*(1-freqDiffRate) + EnvGen.ar(Env.linen(0.07, 0.3, 0.5, freq*freqDiffRate, -2), timeScale:sustain);
+	freq = freq*(1+((LFPar.ar(vibratoFreq)+1)*(vibratoDepth/50)));
+	sig1 = SawDPW.ar([freq,freq]);
+	sig1 = sig1+0.1*SawDPW.ar([(freq*2),(freq*2)]);
+	sig1 = sig1+0.2*SawDPW.ar([(freq/2),(freq/2)]);
+	sig1 = sig1 + (PinkNoise.ar(1!2)/20);
+	sound = sig1;
+	parFreq = Rand(3.5, 7) + EnvGen.ar(Env.linen(0, 0, 0.6, 5, -2), timeScale:sustain);
+	sound = sound*Pulse.kr(parFreq); // tremoro
+	env = EnvGen.ar(Env.linen(0, 0, 0.6, 1, -2), timeScale:sustain, doneAction:2);
+	Out.ar(out, sound*env);
+}).add;
+SynthDef("jungleCrowToy", { arg out, pan=0, amp=0.1, sustain=1, vibratoDepth=0, freqRate1=1, freqRate2=1.04, freqRate3=1.45, freqRate4=1.5, freqRate5=1.95, freqRate6=2;
+	var freq, u, env, vibratoFreq=70, freqDiffRate=0.1, real=0.5, imag=0;
+	env = EnvGen.ar(Env.linen(0.04, 0, 1, 1, 8), timeScale: sustain, doneAction:2);
+	freq = 1000 + Rand(0, 10);
+	freq = freq *(1+((LFPar.ar(vibratoFreq)+1)*(vibratoDepth/50)));
+	freq = freq*(1-freqDiffRate) + EnvGen.ar(Env.linen(0, 0, 1, freq*freqDiffRate, 7), timeScale:sustain);
+	u = 0;
+	u = u + (SinOsc.ar(freq*freqRate1) * 0.15);
+	u = u + (SinOsc.ar(freq*freqRate2) * 0.07);
+	u = u + (SinOsc.ar(freq*freqRate3) * 0.13);
+	u = u + (SinOsc.ar(freq*freqRate4) * 0.09);
+	u = u + (SinOsc.ar(freq*freqRate5) * 0.07);
+	u = u + (SinOsc.ar(freq*freqRate6) * 0.09);
+	OffsetOut.ar(out, u*env);
+}).add;
