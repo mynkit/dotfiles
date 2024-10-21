@@ -132,13 +132,13 @@ resi = pF "resi"
 synthrev = pF "synthrev"
 :}
 
-:{
-seqC :: Time -> Pattern ValueMap -> IO ()
-seqC y pt= (p 16 . (|< orbit 11)) $ qtrigger 16 $ seqP [(0, y, pt)]
+-- :{
+-- seqC :: Time -> Pattern ValueMap -> IO ()
+-- seqC y pt= (p 16 . (|< orbit 11)) $ qtrigger 16 $ seqP [(0, y, pt)]
 
-once' :: Pattern ValueMap -> IO ()
-once' = seqC 1
-:}
+-- once' :: Pattern ValueMap -> IO ()
+-- once' = seqC 1
+-- :}
 
 :{
 mix
@@ -161,8 +161,14 @@ line2 :: Fractional a => Pattern a
 line2 = sig $ \t -> (-1) * (fromRational t)
 :}
 
+-- :{
+-- let resetCyclesTo n = T.changeTempo (sTempoMV tidal) (\t tempo -> tempo {T.atTime = t, T.atCycle = n})
+-- :}
+
 :{
-let resetCyclesTo n = T.changeTempo (sTempoMV tidal) (\t tempo -> tempo {T.atTime = t, T.atCycle = n})
+streamResetCyclesTo :: Stream -> Time -> IO ()
+streamResetCyclesTo s n = streamSetCycle s n
+resetCyclesTo n = streamResetCyclesTo tidal (n+1)
 :}
 
 :{
