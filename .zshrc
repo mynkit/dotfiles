@@ -31,6 +31,9 @@ GIT_PS1_SHOWUPSTREAM=auto
 setopt PROMPT_SUBST ; PS1='[%~ %F{green}$(__git_ps1 " %s")%f]\$ '
 
 # Set PATH, MANPATH, etc., for Homebrew.
+export PYENV_ROOT="$HOME/.pyenv"
+export PATH="$PYENV_ROOT/bin:$PATH"
+
 eval "$(/opt/homebrew/bin/brew shellenv)"
 eval "$(brew shellenv)"
 eval "$(pyenv init --path)"
@@ -48,3 +51,5 @@ if [ -f '/Users/keitamiyano/google-cloud-sdk/path.zsh.inc' ]; then . '/Users/kei
 # The next line enables shell command completion for gcloud.
 if [ -f '/Users/keitamiyano/google-cloud-sdk/completion.zsh.inc' ]; then . '/Users/keitamiyano/google-cloud-sdk/completion.zsh.inc'; fi
 eval "$(direnv hook zsh)"
+
+[ -f "/Users/keitamiyano/.ghcup/env" ] && . "/Users/keitamiyano/.ghcup/env" # ghcup-envsource ${HOME}/.ghcup/env
