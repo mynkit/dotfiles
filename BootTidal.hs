@@ -130,6 +130,15 @@ church = pF "church"
 :}
 
 :{
+modspeed = pF "modspeed"
+:}
+
+:{
+octaveMix = pF "octaveMix"
+:}
+
+
+:{
 synthrev = pF "synthrev"
 :}
 
