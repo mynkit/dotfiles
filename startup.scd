@@ -117,7 +117,7 @@ SynthDef("superhammondBend", {
 	Out.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan, env));
 }).add;
 SynthDef(\superhammondSc, {|out, amp=1, decay=0, pan, freq, vibrato=0.5, vrate=7,
-	voice=0, perc=0, percf=2, accelerate=0, speed=1, hpf=700, tremolorate = 0.2, tremolodepth = 0.2|
+	voice=0, perc=0, percf=2, accelerate=0, speed=1, hpf=700, tremolorate = 0.2, tremolodepth = 0.2, reverb=0|
 	var freqs, amps, sound, click, env, ampscale, attrel, tremolowave;
 	// attrel = (sustain/2).clip(0,0.005);
 	// freq = freq * DirtFreqScale.kr(speed, accelerate, sustain);
@@ -144,10 +144,11 @@ SynthDef(\superhammondSc, {|out, amp=1, decay=0, pan, freq, vibrato=0.5, vrate=7
 	sound = perc * 0.5 * SinOsc.ar(freq*percf, 2pi.rand) * XLine.ar(1,1e-6,2*decay+1) + sound;
 	sound = sound + BAllPass.ar(sound, 1000*LFTri.kr(vrate,0,vibrato/2,1));
 	sound = HPF.ar(sound, hpf);
-	sound = FreeVerb.ar(sound, 0.33, 0.5);
 	tremolodepth = tremolodepth.clip(0, 1) * 0.5;
 	tremolowave = (1 - tremolodepth) + SinOsc.ar(tremolorate, 0.5pi, tremolodepth);
 	sound = sound * tremolowave;
+	sound = LPF.ar(sound, 5000);
+	sound = FreeVerb.ar(sound, reverb, 0.5);
 	Out.ar(out, amp*sound!2);
 }).add;
 SynthDef("toumeiSynth", {
