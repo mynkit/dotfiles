@@ -12,7 +12,7 @@ ln -s "$PWD/.zshrc" "$HOME/.zshrc"
 Apply `init.vim`
 
 ```sh
-mkdir -p "$HOME/.config/nvim/init.vim"
+mkdir -p "$HOME/.config/nvim"
 ln -s "$PWD/dotfiles/init.vim" "$HOME/.config/nvim/init.vim"
 ```
 
