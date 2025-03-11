@@ -13,7 +13,7 @@ Apply `init.vim`
 
 ```sh
 mkdir -p "$HOME/.config/nvim"
-ln -s "$PWD/dotfiles/init.vim" "$HOME/.config/nvim/init.vim"
+ln -s "$PWD/init.vim" "$HOME/.config/nvim/init.vim"
 ```
 
 ## TidalCycles
