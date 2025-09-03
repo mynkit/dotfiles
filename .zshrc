@@ -33,6 +33,8 @@ setopt PROMPT_SUBST ; PS1='[%~ %F{green}$(__git_ps1 " %s")%f]\$ '
 # Set PATH, MANPATH, etc., for Homebrew.
 export PYENV_ROOT="$HOME/.pyenv"
 export PATH="$PYENV_ROOT/bin:$PATH"
+# C++用
+export CPATH=/opt/homebrew/include/
 
 eval "$(/opt/homebrew/bin/brew shellenv)"
 eval "$(brew shellenv)"
@@ -42,6 +44,7 @@ eval "$(anyenv init -)"
 # golang
 export GOPATH=$HOME/go
 export PATH=$PATH:$GOPATH/bin
+export GOPROXY=
 
 [[ -s "/Users/keitamiyano/.gvm/scripts/gvm" ]] && source "/Users/keitamiyano/.gvm/scripts/gvm"
 
@@ -53,3 +56,11 @@ if [ -f '/Users/keitamiyano/google-cloud-sdk/completion.zsh.inc' ]; then . '/Use
 eval "$(direnv hook zsh)"
 
 [ -f "/Users/keitamiyano/.ghcup/env" ] && . "/Users/keitamiyano/.ghcup/env" # ghcup-envsource ${HOME}/.ghcup/env
+
+# pnpm
+export PNPM_HOME="/Users/keitamiyano/Library/pnpm"
+case ":$PATH:" in
+  *":$PNPM_HOME:"*) ;;
+  *) export PATH="$PNPM_HOME:$PATH" ;;
+esac
+# pnpm end
