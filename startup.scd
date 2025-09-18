@@ -149,6 +149,7 @@ SynthDef(\superhammondSc, {|out, amp=1, decay=0, pan, freq, vibrato=0.5, vrate=7
 	sound = sound * tremolowave;
 	sound = LPF.ar(sound, lpf);
 	sound = FreeVerb.ar(sound, reverb, 0.5);
+	// sound = NumChannels.ar([sound*(1-pan)/2, sound*(1+pan)/2], 2);
 	Out.ar(out, amp*sound!2);
 }, [0, 1, 1, 1, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3]).add;
 SynthDef("toumeiSynth", {
@@ -184,7 +185,16 @@ SynthDef("toumeiSynth", {
 	// sound = sound + BAllPass.ar(sound, 1000*LFTri.kr(vrate,0,vibrato/2,1));
 	Out.ar(out, sound*env);
 }).add;
-
+SynthDef("leavesOfTreesEndless", {
+	arg amp=1, pan=0, sustain=1;
+	var out=0, sig, env;
+	sig=PinkNoise.ar(1!2);
+	sig=HPF.ar(sig, 1000);
+	sig=LPF.ar(sig, 10000);
+	pan = LFPar.ar(0.1).range(-0.3, 0.9);
+	amp = LFPar.ar(0.03).range(amp*0.3, amp);
+	Out.ar(out, DirtPan.ar(sig*0.1*amp, ~dirt.numChannels, pan));
+}, [3]).add;
 SynthDef("bassSynth", {
 	arg out, sustain=1, decay=0, pan, freq, vibrato=0.5, vrate=7, voice=0, perc=0, percf=2, accelerate=0, slide=0, sustainpedal=0.5;
 	var freqs, amps, sound, click, env, ampscale, attrel, fglide, bendSustain;
@@ -847,6 +857,20 @@ SynthDef(\zureSc, {|out, amp=1, pan, accelerate, freq, decay=0, detune=1,lpf=800
 	sound = HPF.ar(sound, hpf);
 	Out.ar(out, sound!2*0.05*amp);
 }, [0, 1, 0, 0, 0, 0.2]).add;
+SynthDef(\zureSc2, {|out, amp=1, pan, accelerate, freq, decay=0, detune=1,lpf=8000,hpf=50, reverb=0.1, room=0.9 |
+	var basefreq = freq;
+	var sound = VarSaw.ar(basefreq, 0, 1);
+	var sound2 = VarSaw.ar(basefreq*(detune/100+1), 0, 1);
+	var sound3 = VarSaw.ar(basefreq*(-1*detune/100+1), 0, 1);
+	var sound4 = (VarSaw.ar(basefreq*(5/4)*(-1*detune/150+1), 0, 1) * 0.4);
+	var sound5 = (VarSaw.ar(basefreq*(7/4)*(-1*detune/150+1), 0, 1) * 0.6);
+	sound = sound - DelayN.ar(sound2,0.07)
+	+ DelayN.ar(sound3,0.06) - DelayN.ar(sound4,0.04) + DelayN.ar(sound5,0.03);
+	sound = LPF.ar(sound, lpf);
+	sound = HPF.ar(sound, hpf);
+	sound = FreeVerb.ar(sound, reverb, room);
+	Out.ar(out, sound!2*0.05*amp);
+}, [0, 5, 1, 1, 0.1, 1, 1, 1, 1, 1, 1]).add;
 SynthDef(\padDirt, {
 	| out = 0, amp = 1, freq = 440, gate=1, sustain=1, modspeed=1|
 	var freqs = { freq * LFNoise2.kr(freq:1,mul:0.01,add:1) }!24;
