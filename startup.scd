@@ -10,6 +10,30 @@ Server.default.options.bindAddress = "0.0.0.0";
 Server.default.options.numWireBufs = 64;
 Server.default.options.maxNodes = 1024 * 128;
 Server.default.latency = 0.1;
+// 関数の定義
+~nToF = { |noteString, tuning = 440|
+    var match, noteName, octave, noteToSemitone, semitone, midiNote, freq;
+    match = noteString.findRegexp("([a-gA-GsS#]+)(\\d+)");
+    if (match.isNil or: { match.isEmpty }) {
+        ("Invalid note string: " ++ noteString).warn;
+        ^nil;
+    };
+    noteName = match[1][1].toLower.replace("#", "s");
+    octave = match[2][1].asInteger;
+    noteToSemitone = (
+        c: 0, cs: 1, d: 2, ds: 3, e: 4, f: 5, fs: 6,
+        g: 7, gs: 8, a: 9, as: 10, b: 11
+    );
+    semitone = noteToSemitone[noteName.asSymbol];
+    if (semitone.isNil) {
+        ("Unknown note name: " ++ noteName).warn;
+        ^nil;
+    };
+    midiNote = semitone + ((octave + 1) * 12);
+    // 🎵 A4 = tuning Hz で調律（等比平均律）
+    freq = tuning * (2 ** ((midiNote - 69) / 12));
+    freq;
+};
 // シンセの定義
 SynthDef("SinOscSynthBend", {
 	arg out, sustain=1, decay=0, pan=0, freq=110, accelerate=0, slide=0, sustainpedal=0.5, vibratoFreq=10, vibratoDepth=0, synthrev=0;
@@ -194,7 +218,7 @@ SynthDef("leavesOfTreesEndless", {
 	pan = LFPar.ar(0.1).range(-0.3, 0.9);
 	amp = LFPar.ar(0.03).range(amp*0.3, amp);
 	Out.ar(out, DirtPan.ar(sig*0.1*amp, ~dirt.numChannels, pan));
-}, [3]).add;
+}, [10]).add;
 SynthDef("bassSynth", {
 	arg out, sustain=1, decay=0, pan, freq, vibrato=0.5, vrate=7, voice=0, perc=0, percf=2, accelerate=0, slide=0, sustainpedal=0.5;
 	var freqs, amps, sound, click, env, ampscale, attrel, fglide, bendSustain;
