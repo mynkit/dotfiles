@@ -64,3 +64,9 @@ case ":$PATH:" in
   *) export PATH="$PNPM_HOME:$PATH" ;;
 esac
 # pnpm end
+
+# Raspberry Pi pico
+export PICO_SDK_PATH=$HOME/pico/pico-sdk
+export PICO_EXTRAS_PATH=$HOME/pico/pico-extras
+
+

@@ -210,8 +210,8 @@ SynthDef("toumeiSynth", {
 	Out.ar(out, sound*env);
 }).add;
 SynthDef("leavesOfTreesEndless", {
-	arg amp=1, pan=0, sustain=1;
-	var out=0, sig, env;
+	arg amp=1, pan=0, sustain=1, out=0;
+	var sig, env;
 	sig=PinkNoise.ar(1!2);
 	sig=HPF.ar(sig, 1000);
 	sig=LPF.ar(sig, 10000);
@@ -806,8 +806,8 @@ SynthDef("sine", {
 }, [0.1, 0.2, 1, 1, 1, 1, 1, 1, 10, 10, 10]).add;
 SynthDef("sine2", {
 	arg freq = 440, amp = 0.2, parFreq=0, pan=0,
-	vibratoFreq=3, vibratoDepth=0, actave=1, reverb=0, ice=0, distort=0, octaveMix=0;
-	var sig, out=0, chain, in, z, y, oct, left, right, mod;
+	vibratoFreq=3, vibratoDepth=0, actave=1, reverb=0, ice=0, distort=0, octaveMix=0, out=0;
+	var sig, chain, in, z, y, oct, left, right, mod;
 	sig = SinOsc.ar(actave*freq*(1+((LFPar.ar(vibratoFreq)+1)*(vibratoDepth/50))), 0, amp);
 	sig = sig + SinOsc.ar(actave*freq*2.0*(1+((LFPar.ar(vibratoFreq)+1)*(vibratoDepth/50))), 0, amp*octaveMix);
 	// distort
@@ -944,3 +944,20 @@ SynthDef("jungleCrowToy", { arg out, pan=0, amp=0.1, sustain=1, vibratoDepth=0, 
 	u = u + (SinOsc.ar(freq*freqRate6) * 0.09);
 	OffsetOut.ar(out, u*env);
 }).add;
+SynthDef(\noiseHarmony, {
+	arg amp=1,freq1=55,freq2=277.183,freq3=329.628,freq4=493.883,freq5=880,gain1=0,gain2=0,gain3=0,gain4=0,gain5=0;
+	var out=0,rq=0.05,source,eq,bands,freqs,gains,lpf,hpf;
+	source=WhiteNoise.ar(0.03!2)+BrownNoise.ar(0.03!2);
+	freqs = [freq1,freq2,freq3,freq4,freq5];
+	gains = [gain1,gain2,gain3,gain4,gain5];
+	lpf = max(freq1, max(freq2, max(freq3, max(freq4, freq5)))) + 400;
+	hpf = min(freq1, min(freq2, min(freq3, min(freq4, freq5)))) * 0.5;
+	eq = source;
+	bands = freqs.size;
+	bands.do { |i|
+		eq = BPeakEQ.ar(eq, freqs[i], rq, gains[i]);
+	};
+	eq = LPF.ar(eq, lpf);
+	eq = HPF.ar(eq, hpf);
+	Out.ar(out,eq*0.1*amp);
+}, [0.2]).add;
