@@ -97,6 +97,7 @@ capply' func condpat effectpat = every
 pingpong = pF "pingpong"
 pingpongt = pF "pingpongt"
 pingpongfb = pF "pingpongfb"
+pingponglpf = pF "pingponglpf"
 :}
 
 :{

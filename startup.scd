@@ -10,6 +10,30 @@ Server.default.options.bindAddress = "0.0.0.0";
 Server.default.options.numWireBufs = 64;
 Server.default.options.maxNodes = 1024 * 128;
 Server.default.latency = 0.1;
+// 関数の定義
+~nToF = { |noteString, tuning = 440|
+    var match, noteName, octave, noteToSemitone, semitone, midiNote, freq;
+    match = noteString.findRegexp("([a-gA-GsS#]+)(\\d+)");
+    if (match.isNil or: { match.isEmpty }) {
+        ("Invalid note string: " ++ noteString).warn;
+        ^nil;
+    };
+    noteName = match[1][1].toLower.replace("#", "s");
+    octave = match[2][1].asInteger;
+    noteToSemitone = (
+        c: 0, cs: 1, d: 2, ds: 3, e: 4, f: 5, fs: 6,
+        g: 7, gs: 8, a: 9, as: 10, b: 11
+    );
+    semitone = noteToSemitone[noteName.asSymbol];
+    if (semitone.isNil) {
+        ("Unknown note name: " ++ noteName).warn;
+        ^nil;
+    };
+    midiNote = semitone + ((octave + 1) * 12);
+    // 🎵 A4 = tuning Hz で調律（等比平均律）
+    freq = tuning * (2 ** ((midiNote - 69) / 12));
+    freq;
+};
 // シンセの定義
 SynthDef("SinOscSynthBend", {
 	arg out, sustain=1, decay=0, pan=0, freq=110, accelerate=0, slide=0, sustainpedal=0.5, vibratoFreq=10, vibratoDepth=0, synthrev=0;
@@ -152,7 +176,7 @@ SynthDef("softuperhammondBend", {
 	Out.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan, env));
 }).add;
 SynthDef(\superhammondSc, {|out, amp=1, decay=0, pan, freq, vibrato=0.5, vrate=7,
-	voice=0, perc=0, percf=2, accelerate=0, speed=1, hpf=700, tremolorate = 0.2, tremolodepth = 0.2, reverb=0|
+	voice=0, perc=0, percf=2, accelerate=0, speed=1, hpf=700, tremolorate = 0.2, tremolodepth = 0.2, reverb=0, lpf=5000|
 	var freqs, amps, sound, click, env, ampscale, attrel, tremolowave;
 	// attrel = (sustain/2).clip(0,0.005);
 	// freq = freq * DirtFreqScale.kr(speed, accelerate, sustain);
@@ -182,10 +206,11 @@ SynthDef(\superhammondSc, {|out, amp=1, decay=0, pan, freq, vibrato=0.5, vrate=7
 	tremolodepth = tremolodepth.clip(0, 1) * 0.5;
 	tremolowave = (1 - tremolodepth) + SinOsc.ar(tremolorate, 0.5pi, tremolodepth);
 	sound = sound * tremolowave;
-	sound = LPF.ar(sound, 5000);
+	sound = LPF.ar(sound, lpf);
 	sound = FreeVerb.ar(sound, reverb, 0.5);
+	// sound = NumChannels.ar([sound*(1-pan)/2, sound*(1+pan)/2], 2);
 	Out.ar(out, amp*sound!2);
-}).add;
+}, [0, 1, 1, 1, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3]).add;
 SynthDef("toumeiSynth", {
 	arg out, sustain=1, decay=0, pan, freq, vibrato=0.5, vrate=7, voice=0, perc=0, percf=2, accelerate=0, slide=0, sustainpedal=0.5;
 	var freqs, amps, sound, click, env, ampscale, attrel, fglide, bendSustain;
@@ -219,7 +244,16 @@ SynthDef("toumeiSynth", {
 	// sound = sound + BAllPass.ar(sound, 1000*LFTri.kr(vrate,0,vibrato/2,1));
 	Out.ar(out, sound*env);
 }).add;
-
+SynthDef("leavesOfTreesEndless", {
+	arg amp=1, pan=0, sustain=1;
+	var out=0, sig, env;
+	sig=PinkNoise.ar(1!2);
+	sig=HPF.ar(sig, 1000);
+	sig=LPF.ar(sig, 10000);
+	pan = LFPar.ar(0.1).range(-0.3, 0.9);
+	amp = LFPar.ar(0.03).range(amp*0.3, amp);
+	Out.ar(out, DirtPan.ar(sig*0.1*amp, ~dirt.numChannels, pan));
+}, [10]).add;
 SynthDef("bassSynth", {
 	arg out, sustain=1, decay=0, pan, freq, vibrato=0.5, vrate=7, voice=0, perc=0, percf=2, accelerate=0, slide=0, sustainpedal=0.5;
 	var freqs, amps, sound, click, env, ampscale, attrel, fglide, bendSustain;
@@ -805,6 +839,39 @@ SynthDef("sine", {
 	sig = sig * 0.1;
 	Out.ar(out, sig);
 }, [0.1, 0.2, 1, 1, 1, 1, 1, 1, 10, 10, 10]).add;
+SynthDef("sine2", {
+	arg freq = 440, amp = 0.2, parFreq=0, pan=0,
+	vibratoFreq=3, vibratoDepth=0, actave=1, reverb=0, ice=0, distort=0, octaveMix=0;
+	var sig, out=0, chain, in, z, y, oct, left, right, mod;
+	sig = SinOsc.ar(actave*freq*(1+((LFPar.ar(vibratoFreq)+1)*(vibratoDepth/50))), 0, amp);
+	sig = sig + SinOsc.ar(actave*freq*2.0*(1+((LFPar.ar(vibratoFreq)+1)*(vibratoDepth/50))), 0, amp*octaveMix);
+	// distort
+	mod = CrossoverDistortion.ar(sig, amp: 0.2, smooth: 0.01);
+	mod = mod + (0.1 * distort * DynKlank.ar(`[[60,61,240,3000 + SinOsc.ar(62,mul: 100)],nil,[0.1, 0.1, 0.05, 0.01]], sig));
+	mod = (mod.cubed * 8).softclip * 0.5;
+	sig = SelectX.ar(distort, [sig, mod]);
+	// tremoro
+	sig = if(
+		parFreq>0.1,
+		sig*LFPar.ar(parFreq),
+		if(
+			LFPar.ar(parFreq)>0,
+			sig*(LFPar.ar(parFreq) + (1-(LFPar.ar(parFreq))*((1-(parFreq*10))))),
+			sig*(LFPar.ar(parFreq) + (-1-(LFPar.ar(parFreq))*((1-(parFreq*10))))),
+		)
+	);
+	// panning
+	sig = Pan2.ar(sig, pan);
+	// reverb
+	z = DelayN.ar(sig, 0.048);
+	y = Mix.ar(Array.fill(7,{ CombL.ar(z, 0.1, 1, 15) }));
+	32.do({ y = AllpassN.ar(y, 0.050, [0.050.rand, 0.050.rand], 1) });
+	oct = 1.0 * LeakDC.ar( abs(y) );
+	y = SelectX.ar(ice, [y, ice * oct, DC.ar(0)]);
+	sig = sig + (0.2*y*reverb);
+	sig = sig * 0.1;
+	Out.ar(out, sig);
+}, [0.2, 0.0, 1, 0.1, 1, 1, 1, 1, 10, 10, 10]).add;
 SynthDef("saw", {
 	arg freq = 440, amp = 0.2, parFreq=0, pan2Freq=0, pan=0,
 	vibratoFreq=3, vibratoDepth=0, actave=1, reverb=0, ice=0, bpf=440;
@@ -849,6 +916,20 @@ SynthDef(\zureSc, {|out, amp=1, pan, accelerate, freq, decay=0, detune=1,lpf=800
 	sound = HPF.ar(sound, hpf);
 	Out.ar(out, sound!2*0.05*amp);
 }, [0, 1, 0, 0, 0, 0.2]).add;
+SynthDef(\zureSc2, {|out, amp=1, pan, accelerate, freq, decay=0, detune=1,lpf=8000,hpf=50, reverb=0.1, room=0.9 |
+	var basefreq = freq;
+	var sound = VarSaw.ar(basefreq, 0, 1);
+	var sound2 = VarSaw.ar(basefreq*(detune/100+1), 0, 1);
+	var sound3 = VarSaw.ar(basefreq*(-1*detune/100+1), 0, 1);
+	var sound4 = (VarSaw.ar(basefreq*(5/4)*(-1*detune/150+1), 0, 1) * 0.4);
+	var sound5 = (VarSaw.ar(basefreq*(7/4)*(-1*detune/150+1), 0, 1) * 0.6);
+	sound = sound - DelayN.ar(sound2,0.07)
+	+ DelayN.ar(sound3,0.06) - DelayN.ar(sound4,0.04) + DelayN.ar(sound5,0.03);
+	sound = LPF.ar(sound, lpf);
+	sound = HPF.ar(sound, hpf);
+	sound = FreeVerb.ar(sound, reverb, room);
+	Out.ar(out, sound!2*0.05*amp);
+}, [0, 5, 1, 1, 0.1, 1, 1, 1, 1, 1, 1]).add;
 SynthDef(\padDirt, {
 	| out = 0, amp = 1, freq = 440, gate=1, sustain=1, modspeed=1|
 	var freqs = { freq * LFNoise2.kr(freq:1,mul:0.01,add:1) }!24;
