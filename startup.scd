@@ -140,7 +140,7 @@ SynthDef("superhammondBend", {
 	// sound = Pan2.ar(sound, FSinOsc.kr(1.43));
 	Out.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan, env));
 }).add;
-SynthDef("softuperhammondBend", {
+SynthDef("softSuperhammondBend", {
 	arg out, sustain=1, decay=0, pan, freq, vibrato=0.5, vrate=7, voice=0, perc=0, percf=2, accelerate=0, slide=0, sustainpedal=0.5;
 	var freqs, amps, sound, click, env, ampscale, attrel, fglide, bendSustain;
 	bendSustain = sustainpedal;
