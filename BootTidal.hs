@@ -253,6 +253,10 @@ mod9 = pmod "mod9" . (|< orbit 8)
 mod10 = pmod "mod10" . (|< orbit 9)
 mod11 = pmod "mod11" . (|< orbit 10)
 mod12 = pmod "mod12" . (|< orbit 11)
+mod13 = pmod "mod13" . (|< orbit 12)
+mod14 = pmod "mod14" . (|< orbit 13)
+mod15 = pmod "mod15" . (|< orbit 14)
+mod16 = pmod "mod16" . (|< orbit 15)
 
 -- Reset functions
 reset = pI "reset" 1
