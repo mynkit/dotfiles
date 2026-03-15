@@ -12,27 +12,27 @@ Server.default.options.maxNodes = 1024 * 128;
 Server.default.latency = 0.1;
 // 関数の定義
 ~nToF = { |noteString, tuning = 440|
-    var match, noteName, octave, noteToSemitone, semitone, midiNote, freq;
-    match = noteString.findRegexp("([a-gA-GsS#]+)(\\d+)");
-    if (match.isNil or: { match.isEmpty }) {
-        ("Invalid note string: " ++ noteString).warn;
-        ^nil;
-    };
-    noteName = match[1][1].toLower.replace("#", "s");
-    octave = match[2][1].asInteger;
-    noteToSemitone = (
-        c: 0, cs: 1, d: 2, ds: 3, e: 4, f: 5, fs: 6,
-        g: 7, gs: 8, a: 9, as: 10, b: 11
-    );
-    semitone = noteToSemitone[noteName.asSymbol];
-    if (semitone.isNil) {
-        ("Unknown note name: " ++ noteName).warn;
-        ^nil;
-    };
-    midiNote = semitone + ((octave + 1) * 12);
-    // 🎵 A4 = tuning Hz で調律（等比平均律）
-    freq = tuning * (2 ** ((midiNote - 69) / 12));
-    freq;
+	var match, noteName, octave, noteToSemitone, semitone, midiNote, freq;
+	match = noteString.findRegexp("([a-gA-GsS#]+)(\\d+)");
+	if (match.isNil or: { match.isEmpty }) {
+		("Invalid note string: " ++ noteString).warn;
+		^nil;
+	};
+	noteName = match[1][1].toLower.replace("#", "s");
+	octave = match[2][1].asInteger;
+	noteToSemitone = (
+		c: 0, cs: 1, d: 2, ds: 3, e: 4, f: 5, fs: 6,
+		g: 7, gs: 8, a: 9, as: 10, b: 11
+	);
+	semitone = noteToSemitone[noteName.asSymbol];
+	if (semitone.isNil) {
+		("Unknown note name: " ++ noteName).warn;
+		^nil;
+	};
+	midiNote = semitone + ((octave + 1) * 12);
+	// 🎵 A4 = tuning Hz で調律（等比平均律）
+	freq = tuning * (2 ** ((midiNote - 69) / 12));
+	freq;
 };
 // シンセの定義
 SynthDef("SinOscSynthBend", {
@@ -996,3 +996,100 @@ SynthDef(\noiseHarmony, {
 	eq = HPF.ar(eq, hpf);
 	Out.ar(out,eq*0.1*amp);
 }, [0.2]).add;
+// =======================
+// Orbit monitor synth
+// =======================
+SynthDef(\orbitMonitor, { |inbus, outbus|
+	var sig;
+	var amp;
+
+	sig = In.ar(inbus, 2);
+	amp = Amplitude.kr(Mix(sig)).lag(0.1) * 10;
+
+	Out.kr(outbus, amp);
+}).add;
+// =======================
+// Orbit monitor setup
+// =======================
+
+~orbitMonitorSetup = {
+
+	~orbitMonitorBuses = Array.newClear(~dirt.orbits.size);
+	~orbitMonitorSynths = Array.newClear(~dirt.orbits.size);
+
+	~dirt.orbits.do { |orbit|
+
+		var bus;
+		var synth;
+
+		bus = Bus.control(s, 1);
+
+		synth = Synth.tail(
+			s,
+			\orbitMonitor,
+			[
+				\inbus, orbit.dryBus.index,
+				\outbus, bus.index
+			]
+		);
+
+		~orbitMonitorBuses[orbit.orbitIndex] = bus;
+		~orbitMonitorSynths[orbit.orbitIndex] = synth;
+	};
+
+	"Orbit monitor ready".postln;
+};
+// =======================
+// Orbit GUI
+// =======================
+~orbitMonitorGUI = {
+
+	var n;
+	var w;
+	var rowHeight = 22;
+	var height;
+
+	n = ~orbitMonitorBuses.size;
+
+	height = (n * rowHeight) + 20;
+
+	w = Window(
+		"Tidal Orbit Monitor",
+		Rect(200,200,260,height)
+	).front;
+
+	~orbitMeters = Array.newClear(n);
+
+	n.do { |i|
+
+		StaticText(w, Rect(10, 10 + (i*rowHeight), 60, 18))
+		.string_("orbit " ++ i);
+
+		~orbitMeters[i] =
+		LevelIndicator(w, Rect(70, 10 + (i*rowHeight), 160, 18));
+	};
+
+	Routine({
+		loop {
+
+			n.do { |i|
+
+				var v = ~orbitMonitorBuses[i].getSynchronous;
+
+				{
+					~orbitMeters[i].value = v.clip(0,1);
+				}.defer;
+
+			};
+
+			0.05.wait;
+
+		}
+	}).play(AppClock);
+
+	"Orbit monitor GUI started".postln;
+};
+~orbitMonitor = {
+	~orbitMonitorSetup.();
+	~orbitMonitorGUI.();
+};
