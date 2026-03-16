@@ -1045,15 +1045,19 @@ SynthDef(\orbitMonitor, { |inbus, outbus|
 ~orbitMonitorGUI = {
 
 	var n;
-	var w;
 	var rowHeight = 22;
 	var height;
+
+	// 既存Windowがあれば閉じる
+	if(~orbitWindow.notNil) {
+		~orbitWindow.close;
+	};
 
 	n = ~orbitMonitorBuses.size;
 
 	height = (n * rowHeight) + 20;
 
-	w = Window(
+	~orbitWindow = Window(
 		"Tidal Orbit Monitor",
 		Rect(200,200,260,height)
 	).front;
@@ -1062,11 +1066,11 @@ SynthDef(\orbitMonitor, { |inbus, outbus|
 
 	n.do { |i|
 
-		StaticText(w, Rect(10, 10 + (i*rowHeight), 60, 18))
+		StaticText(~orbitWindow, Rect(10, 10 + (i*rowHeight), 60, 18))
 		.string_("orbit " ++ i);
 
 		~orbitMeters[i] =
-		LevelIndicator(w, Rect(70, 10 + (i*rowHeight), 160, 18));
+		LevelIndicator(~orbitWindow, Rect(70, 10 + (i*rowHeight), 160, 18));
 	};
 
 	Routine({
