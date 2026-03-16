@@ -996,6 +996,15 @@ SynthDef(\noiseHarmony, {
 	eq = HPF.ar(eq, hpf);
 	Out.ar(out,eq*0.1*amp);
 }, [0.2]).add;
+SynthDef("sddrone", {
+	arg freq = 430, amp = 0.2, sustain = 1.0,
+	vibratoFreq=3, vibratoDepth=0, actave=1, numHarm=2, out=0;
+	var sig, env;
+	sig = Blip.ar(actave*freq*(1+((LFPar.ar(vibratoFreq)+1)*(vibratoDepth/50))), numHarm) * amp;
+	env = EnvGen.ar(Env.linen(0.01, 0, 0.6, 1, -3), timeScale:sustain, doneAction:2);
+	sig = sig * env;
+	Out.ar(out, sig!2);
+}).add;
 // =======================
 // Orbit monitor synth
 // =======================
