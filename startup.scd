@@ -1066,11 +1066,11 @@ SynthDef(\orbitMonitor, { |inbus, outbus|
 
 	n.do { |i|
 
-		StaticText(~orbitWindow, Rect(10, 10 + (i*rowHeight), 60, 18))
-		.string_("orbit " ++ i);
+		StaticText(~orbitWindow, Rect(10, 10 + (i*rowHeight), 30, 18))
+		.string_("d" ++ (i+1));
 
 		~orbitMeters[i] =
-		LevelIndicator(~orbitWindow, Rect(70, 10 + (i*rowHeight), 160, 18));
+		LevelIndicator(~orbitWindow, Rect(45, 10 + (i*rowHeight), 190, 18));
 	};
 
 	Routine({
