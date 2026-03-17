@@ -1,6 +1,7 @@
 :set -XOverloadedStrings
 :set prompt ""
 
+import Data.IORef
 import Data.Maybe (isJust, fromJust)
 import Data.List (elemIndex)
 import qualified Sound.Tidal.Tempo as T
@@ -72,11 +73,21 @@ let getState = streamGet tidal
     setB = streamSetB tidal
 :}
 
+currentBpm <- newIORef 80.0
+
 :{
-setbpm bpm = do
-  setcps (bpm/60/4)
-  setF "bpm" bpm
+let setbpm :: Double -> IO ()
+    setbpm bpm = do
+      writeIORef currentBpm bpm
+      setcps (pure $ bpm/60/4)
+      setF "bpm" (pure bpm)
+
+    showBpm = do
+      bpm <- readIORef currentBpm
+      putStrLn $ "bpm: " ++ show bpm
 :}
+
+setbpm 80.0
 
 :{
 capply
