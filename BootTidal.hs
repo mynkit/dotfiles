@@ -73,6 +73,12 @@ let getState = streamGet tidal
 :}
 
 :{
+setbpm bpm = do
+  setcps (bpm/60/4)
+  setF "bpm" bpm
+:}
+
+:{
 capply
   :: (Ord a1, Num a1) =>
      Pattern a1
