@@ -1049,6 +1049,26 @@ SynthDef(\orbitMonitor, { |inbus, outbus|
 	"Orbit monitor ready".postln;
 };
 // =======================
+// ntag受信
+// =======================
+
+~orbitTags = Array.fill(16, { "" });
+
+OSCdef(\ntagReceiver, { |msg|
+
+	var orbit;
+	var tag;
+
+	// 想定フォーマット: /ntag orbit tag
+	orbit = msg[1].asInteger;
+	tag   = msg[2].asString;
+
+	if(orbit.notNil && tag.notNil) {
+		~orbitTags[orbit] = tag;
+	};
+
+}, '/ntag');
+// =======================
 // Orbit GUI
 // =======================
 ~orbitMonitorGUI = {
@@ -1057,29 +1077,35 @@ SynthDef(\orbitMonitor, { |inbus, outbus|
 	var rowHeight = 22;
 	var height;
 
-	// 既存Windowがあれば閉じる
 	if(~orbitWindow.notNil) {
 		~orbitWindow.close;
 	};
 
 	n = ~orbitMonitorBuses.size;
-
 	height = (n * rowHeight) + 20;
 
 	~orbitWindow = Window(
 		"Tidal Orbit Monitor",
-		Rect(200,200,260,height)
+		Rect(200,200,320,height) // 少し広げる
 	).front;
 
 	~orbitMeters = Array.newClear(n);
+	~orbitTagTexts = Array.newClear(n);
 
 	n.do { |i|
 
+		// d番号
 		StaticText(~orbitWindow, Rect(10, 10 + (i*rowHeight), 30, 18))
 		.string_("d" ++ (i+1));
 
+		// タグ表示 ← NEW
+		~orbitTagTexts[i] =
+		StaticText(~orbitWindow, Rect(45, 10 + (i*rowHeight), 80, 18))
+		.string_("");
+
+		// メーター
 		~orbitMeters[i] =
-		LevelIndicator(~orbitWindow, Rect(45, 10 + (i*rowHeight), 190, 18));
+		LevelIndicator(~orbitWindow, Rect(130, 10 + (i*rowHeight), 170, 18));
 	};
 
 	Routine({
@@ -1088,9 +1114,11 @@ SynthDef(\orbitMonitor, { |inbus, outbus|
 			n.do { |i|
 
 				var v = ~orbitMonitorBuses[i].getSynchronous;
+				var tag = ~orbitTags[i];
 
 				{
 					~orbitMeters[i].value = v.clip(0,1);
+					~orbitTagTexts[i].string = tag;
 				}.defer;
 
 			};
@@ -1106,3 +1134,22 @@ SynthDef(\orbitMonitor, { |inbus, outbus|
 	~orbitMonitorSetup.();
 	~orbitMonitorGUI.();
 };
+OSCdef(\ntagFromDirt, { |msg|
+	var tag = nil;
+	var orbit = nil;
+	// 3番目以降が key/value ペア
+	msg.drop(3).pairsDo { |key, val|
+		if(key == \ntag) {
+			tag = val;
+		};
+		if(key == \orbit) {
+			orbit = val;
+		};
+	};
+	// 両方取れたら更新
+	if(tag.notNil && orbit.notNil) {
+		if(tag != ~orbitTags[orbit]) {
+			~orbitTags[orbit] = tag;
+		};
+	};
+}, '/dirt/play');

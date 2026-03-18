@@ -162,6 +162,11 @@ octaveMix = pF "octaveMix"
 synthrev = pF "synthrev"
 :}
 
+
+:{
+ntag = pS "ntag"
+:}
+
 -- :{
 -- seqC :: Time -> Pattern ValueMap -> IO ()
 -- seqC y pt= (p 16 . (|< orbit 11)) $ qtrigger 16 $ seqP [(0, y, pt)]
