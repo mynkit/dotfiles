@@ -1148,6 +1148,10 @@ OSCdef(\ntagFromDirt, { |msg|
 	};
 	// 両方取れたら更新
 	if(tag.notNil && orbit.notNil) {
+		tag = tag.asString;
+		if(tag == "off") {
+			tag = "";
+		};
 		if(tag != ~orbitTags[orbit]) {
 			~orbitTags[orbit] = tag;
 		};
