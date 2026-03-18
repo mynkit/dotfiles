@@ -1157,3 +1157,27 @@ OSCdef(\ntagFromDirt, { |msg|
 		};
 	};
 }, '/dirt/play');
+OSCdef(\ntagDirect, { |msg|
+	var orbit = msg[1];
+	var tag   = msg[2];
+	tag = tag.asString;
+
+	if(tag == "off") {
+		tag = "";
+	};
+	if(tag != ~orbitTags[orbit]) {
+		~orbitTags[orbit] = tag;
+	};
+}, '/ntag');
+~orbitTags = Array.fill(16, "");
+OSCdef(\ntagDirectAll, { |msg|
+    var tag = msg[1].asString;
+
+    if(tag == "off") { tag = ""; };
+
+    16.do { |orbit|
+        if(tag != ~orbitTags[orbit]) {
+            ~orbitTags[orbit] = tag;
+        };
+    };
+}, '/ntagAll');

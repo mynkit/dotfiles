@@ -1,6 +1,7 @@
 :set -XOverloadedStrings
 :set prompt ""
 
+import Sound.Osc.Fd as O hiding (Time)
 import Data.IORef
 import Data.Maybe (isJust, fromJust)
 import Data.List (elemIndex)
@@ -73,6 +74,49 @@ let getState = streamGet tidal
     setS = streamSetS tidal
     setR = streamSetR tidal
     setB = streamSetB tidal
+:}
+
+:{
+let sendTag o t = do
+      r <- O.openUdp "127.0.0.1" 57120
+      O.sendMessage r $ O.Message "/ntag" [O.int32 o, O.string t]
+:}
+
+:{
+let sendTagAll t = do
+      r <- O.openUdp "127.0.0.1" 57120
+      O.sendMessage r $ O.Message "/ntagAll" [O.string t]
+:}
+
+:{
+let toOrbit i =
+      case i of
+        1 -> 0
+        2 -> 1
+        3 -> 2
+        4 -> 3
+        5 -> 4
+        6 -> 5
+        7 -> 6
+        8 -> 7
+        9 -> 8
+        10 -> 9
+        11 -> 10
+        12 -> 11
+        13 -> 12
+        14 -> 13
+        15 -> 14
+        16 -> 15
+        _ -> 0
+    silence' i = do
+      streamSilence tidal i
+      sendTag (toOrbit i) "off"
+:}
+
+:{
+let hush' = do
+      streamHush tidal
+      sendTagAll "off"
 :}
 
 currentBpm <- newIORef 80.0
