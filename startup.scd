@@ -1181,3 +1181,20 @@ OSCdef(\ntagDirectAll, { |msg|
         };
     };
 }, '/ntagAll');
+// tidal sync n_set
+SynthDef(\tick, { |cycle=0, freq=440, amp=0.1, nodeId=1000|
+    SendReply.kr(
+        Impulse.kr(0),
+        "/tick",
+        [cycle, freq, amp, nodeId]
+    );
+    FreeSelf.kr(Impulse.kr(0));
+}).add;
+OSCdef(\tick, { |msg|
+    var cycle, freq, amp, nodeId;
+    #cycle, freq, amp, nodeId = msg[3..];
+    s.sendMsg("/n_set", nodeId,
+        "freq", freq,
+        "amp", amp
+    );
+}, "/tick");

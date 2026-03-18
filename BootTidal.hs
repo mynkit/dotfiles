@@ -172,6 +172,10 @@ capply' func condpat effectpat = every
 :}
 
 :{
+nodeId = pI "nodeId"
+:}
+
+:{
 pingpong = pF "pingpong"
 pingpongt = pF "pingpongt"
 pingpongfb = pF "pingpongfb"
