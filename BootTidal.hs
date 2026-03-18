@@ -89,6 +89,21 @@ let sendTagAll t = do
 :}
 
 :{
+-- ex: `s_new 1000 "pinknoise" [string "amp", Float 0.1]`
+let s_new nodeId synthname param = do { r <- O.openUdp "127.0.0.1" 57110; O.sendMessage r $ O.Message "/s_new" ([O.string synthname, O.Int32 nodeId, O.Int32 1, O.Int32 0] ++ param) }
+:}
+
+:{
+-- ex: `n_set 1000 [string "amp", Float 1.0]`
+let n_set nodeId param = do { r <- O.openUdp "127.0.0.1" 57110; O.sendMessage r $ O.Message "/n_set" ([O.Int32 nodeId] ++ param) }
+:}
+
+:{
+-- ex: `n_free 1000`
+let n_free nodeId = do { r <- O.openUdp "127.0.0.1" 57110; O.sendMessage r $ O.Message "/n_free" [O.Int32 nodeId] }
+:}
+
+:{
 let toOrbit i =
       case i of
         1 -> 0
