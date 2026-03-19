@@ -89,7 +89,7 @@ let sendTagAll t = do
 :}
 
 :{
--- ex: `s_new 1000 "pinknoise" [string "amp", Float 0.1]`
+-- ex: `s_new 1000 "pinknoise" [string "amp", Float 0.0]`
 let s_new nodeId synthname param = do { r <- O.openUdp "127.0.0.1" 57110; O.sendMessage r $ O.Message "/s_new" ([O.string synthname, O.Int32 nodeId, O.Int32 1, O.Int32 0] ++ param) }
 :}
 
@@ -101,6 +101,21 @@ let n_set nodeId param = do { r <- O.openUdp "127.0.0.1" 57110; O.sendMessage r 
 :{
 -- ex: `n_free 1000`
 let n_free nodeId = do { r <- O.openUdp "127.0.0.1" 57110; O.sendMessage r $ O.Message "/n_free" [O.Int32 nodeId] }
+:}
+
+:{
+-- s_news "superhammondSc" [1000,1001,1002,1003] [string "amp", Float 0.0, string "freq", Float 440, string "reverb", Float 0.9, string "vibrato", Float 1.0, string "vrate", Float 32, string "lpf", Float 4000, string "hpf", Float 100, string "tremolorate", Float 20, string "tremolodepth", Float 0.15]
+let s_news synthname nodeIds param = do { r <- O.openUdp "127.0.0.1" 57110; mapM_ (\nodeId -> O.sendMessage r $ O.Message "/s_new" ([O.string synthname, O.Int32 nodeId, O.Int32 1, O.Int32 0] ++ param)) nodeIds }
+:}
+
+:{
+-- n_sets [1000,1001,1002,1003] [string "amp", Float 1.0]
+let n_sets nodeIds param = do { r <- O.openUdp "127.0.0.1" 57110; mapM_ (\nodeId -> O.sendMessage r $ O.Message "/n_set" ([O.Int32 nodeId] ++ param)) nodeIds }
+:}
+
+:{
+-- n_frees [1000,1001,1002,1003]
+let n_frees nodeIds = do { r <- O.openUdp "127.0.0.1" 57110; mapM_ (\nodeId -> O.sendMessage r $ O.Message "/n_free" [O.Int32 nodeId]) nodeIds }
 :}
 
 :{
