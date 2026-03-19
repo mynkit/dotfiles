@@ -996,6 +996,38 @@ SynthDef(\noiseHarmony, {
 	eq = HPF.ar(eq, hpf);
 	Out.ar(out,eq*0.1*amp);
 }, [0.2]).add;
+SynthDef("drone", {
+	arg freq = 430, amp = 0.2, parFreq=0, pan2Freq=0, pan=0,
+	vibratoFreq=3, vibratoDepth=0, actave=1, reverb=0, ice=0, numHarm=2, lpf=7000, out=4;
+	var sig, chain, in, z, y, oct, left, right, mod;
+	sig = Blip.ar(actave*freq*(1+((LFPar.ar(vibratoFreq)+1)*(vibratoDepth/50))), numHarm) * amp;
+	// tremoro
+	sig = if(
+		parFreq>0.1,
+		sig*LFPar.ar(parFreq),
+		if(
+			LFPar.ar(parFreq)>0,
+			sig*(LFPar.ar(parFreq) + (1-(LFPar.ar(parFreq))*((1-(parFreq*10))))),
+			sig*(LFPar.ar(parFreq) + (-1-(LFPar.ar(parFreq))*((1-(parFreq*10))))),
+		)
+	);
+	// panning
+	sig = if(
+		pan2Freq>0.1,
+		Pan2.ar(sig, LFPar.ar(pan2Freq)),
+		Pan2.ar(sig, LFPar.ar(pan2Freq)*pan2Freq*10)
+	);
+	// reverb
+	z = DelayN.ar(sig, 0.048);
+	y = Mix.ar(Array.fill(7,{ CombL.ar(z, 0.1, 1, 15) }));
+	32.do({ y = AllpassN.ar(y, 0.050, [0.050.rand, 0.050.rand], 1) });
+	oct = 1.0 * LeakDC.ar( abs(y) );
+	y = SelectX.ar(ice, [y, ice * oct, DC.ar(0)]);
+	sig = sig + (0.2*y*reverb);
+	sig = LPF.ar(sig, lpf);
+	sig = sig * 0.1;
+	Out.ar(out, sig);
+}, [0.1, 5, 1, 1, 1, 1, 1, 1, 10, 10, 10]).add;
 SynthDef("sddrone", {
 	arg freq = 430, amp = 0.2, sustain = 1.0,
 	vibratoFreq=3, vibratoDepth=0, actave=1, numHarm=2, out=0;
@@ -1005,6 +1037,24 @@ SynthDef("sddrone", {
 	sig = sig * env;
 	Out.ar(out, sig!2);
 }).add;
+SynthDef(\blipHarmonics, {
+	arg freq=100, amp=0.2, f1=730, f2=1090, f3=2440, g1=1, g2=0.8, g3=0.5, lpf=800, numHarm=8, vibratoFreq=0.1, vibratoDepth=0.3, reverb=0.0, out=0;
+	var sig, fs, gs, y, z;
+	freq = freq*(1+((LFPar.ar(vibratoFreq)+1)*(vibratoDepth/50)));
+	sig = Blip.ar(freq, numHarm)!2;
+	fs = [f1, f2, f3];
+	gs = [g1, g2, g3];
+	sig = Mix.fill(3, { |i|
+		BPF.ar(sig, fs[i], 0.03) * gs[i]
+	});
+	sig = LPF.ar(sig, lpf);
+	// reverb
+	z = DelayN.ar(sig, 0.048);
+	y = Mix.ar(Array.fill(6,{ CombL.ar(z, 0.1, 1, 15) }));
+	16.do({ y = AllpassN.ar(y, 0.050, [0.050.rand, 0.050.rand], 1) });
+	sig = sig + (0.2*y*reverb);
+	Out.ar(out, (20 * sig * amp));
+}, [0.1, 5, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0, 0.1, 0.1, 0.1]).add;
 // =======================
 // Orbit monitor synth
 // =======================
@@ -1171,30 +1221,30 @@ OSCdef(\ntagDirect, { |msg|
 }, '/ntag');
 ~orbitTags = Array.fill(16, "");
 OSCdef(\ntagDirectAll, { |msg|
-    var tag = msg[1].asString;
+	var tag = msg[1].asString;
 
-    if(tag == "off") { tag = ""; };
+	if(tag == "off") { tag = ""; };
 
-    16.do { |orbit|
-        if(tag != ~orbitTags[orbit]) {
-            ~orbitTags[orbit] = tag;
-        };
-    };
+	16.do { |orbit|
+		if(tag != ~orbitTags[orbit]) {
+			~orbitTags[orbit] = tag;
+		};
+	};
 }, '/ntagAll');
 // tidal sync n_set
 SynthDef(\tick, { |cycle=0, freq=440, amp=0.1, nodeId=1000|
-    SendReply.kr(
-        Impulse.kr(0),
-        "/tick",
-        [cycle, freq, amp, nodeId]
-    );
-    FreeSelf.kr(Impulse.kr(0));
+	SendReply.kr(
+		Impulse.kr(0),
+		"/tick",
+		[cycle, freq, amp, nodeId]
+	);
+	FreeSelf.kr(Impulse.kr(0));
 }).add;
 OSCdef(\tick, { |msg|
-    var cycle, freq, amp, nodeId;
-    #cycle, freq, amp, nodeId = msg[3..];
-    s.sendMsg("/n_set", nodeId,
-        "freq", freq,
-        "amp", amp
-    );
+	var cycle, freq, amp, nodeId;
+	#cycle, freq, amp, nodeId = msg[3..];
+	s.sendMsg("/n_set", nodeId,
+		"freq", freq,
+		"amp", amp
+	);
 }, "/tick");
