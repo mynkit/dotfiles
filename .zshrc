@@ -70,3 +70,7 @@ export PICO_SDK_PATH=$HOME/pico/pico-sdk
 export PICO_EXTRAS_PATH=$HOME/pico/pico-extras
 
 
+export PATH="$HOME/.local/bin:$PATH"
+
+export PATH="/Applications/Docker.app/Contents/Resources/bin:$PATH"
+

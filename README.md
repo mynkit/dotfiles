@@ -41,4 +41,71 @@ Overwrite `BootTidal.hs`.
 ln -s "$PWD/BootTidal.hs" "$HOME/BootTidal.hs"
 ```
 
+# TidalCycles + SuperCollider
 
+```haskell
+
+s_new "pinknoise" 1000 [string "amp", Float 0.0]
+
+n_free 1000
+
+n_set 1000 [string "amp", Float 0.3, string "hpf", Float 4700, string "lpf", Float 470]
+
+p "pinknoise"
+  $ slow 1
+  $ "tick"
+  # amp "<0.1 0.5 0.8 0.4>"
+  # nodeId 1000
+
+```
+
+
+```
+cycle_n_set synthname 
+
+do
+  p "superhammondSc1"
+    $ slow 4
+    $ "tick"
+    # amp "<0.3 0.3>"
+    # freq "<138.59 184.99>"
+    # nodeId 1000
+  p "superhammondSc2"
+    $ slow 4
+    $ "tick"
+    # amp "<0.3 0.3>"
+    # freq "<207.65 277.18>"
+    # nodeId 1000
+  p "superhammondSc3"
+    $ slow 4
+    $ "tick"
+    # amp "<0.3 0.3>"
+    # freq "<164.81 220.00>"
+    # nodeId 1000
+  p "superhammondSc4"
+    $ slow 4
+    $ "tick"
+    # amp "<0.3 0.3>"
+    # freq "<69.29 92.49>"
+    # nodeId 1000
+
+```
+
+138.5915
+207.6526252449546
+164.8139978788996
+69.29575
+
+184.99745764920632
+277.183
+220.00029289385068
+92.49872882460316
+
+```python
+def cal(n):
+  print(277.183*0.5*(2**((0+n)/12)))
+  print(277.183*0.5*(2**((7+n)/12)))
+  print(277.183*0.5*(2**((3+n)/12)))
+  print(277.183*0.5*(2**((-12+n)/12)))
+
+```
