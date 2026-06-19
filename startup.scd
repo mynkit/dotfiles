@@ -1160,16 +1160,14 @@ OSCdef(\ntagReceiver, { |msg|
 
 	Routine({
 		loop {
-			try {
-				n.do { |i|
-					var v = ~orbitMonitorBuses[i].getSynchronous;
-					var tag = ~orbitTags[i];
-					{
-						~orbitMeters[i].value = v.clip(0,1);
-						~orbitTagTexts[i].string = tag;
-					}.defer;
-				};
-			} { |e| ("OrbitMonitor error: " ++ e.messageString).postln };
+			n.do { |i|
+				var v = try { ~orbitMonitorBuses[i].getSynchronous } { 0 };
+				var tag = ~orbitTags[i];
+				{
+					~orbitMeters[i].value = v.clip(0,1);
+					~orbitTagTexts[i].string = tag;
+				}.defer;
+			};
 			0.05.wait;
 		}
 	}).play(AppClock);
