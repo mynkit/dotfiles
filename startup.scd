@@ -1158,25 +1158,17 @@ OSCdef(\ntagReceiver, { |msg|
 		LevelIndicator(~orbitWindow, Rect(130, 10 + (i*rowHeight), 170, 18));
 	};
 
-	Routine({
-		loop {
-
-			n.do { |i|
-
-				var v = ~orbitMonitorBuses[i].getSynchronous;
-				var tag = ~orbitTags[i];
-
-				{
-					~orbitMeters[i].value = v.clip(0,1);
-					~orbitTagTexts[i].string = tag;
-				}.defer;
-
-			};
-
-			0.05.wait;
-
-		}
-	}).play(AppClock);
+	if(~orbitSkipJack.notNil) { ~orbitSkipJack.stop };
+	~orbitSkipJack = SkipJack({
+		n.do { |i|
+			var v = ~orbitMonitorBuses[i].getSynchronous;
+			var tag = ~orbitTags[i];
+			{
+				~orbitMeters[i].value = v.clip(0,1);
+				~orbitTagTexts[i].string = tag;
+			}.defer;
+		};
+	}, 0.05, name: "OrbitMonitor");
 
 	"Orbit monitor GUI started".postln;
 };
