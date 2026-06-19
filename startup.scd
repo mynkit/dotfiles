@@ -1167,12 +1167,12 @@ OSCdef(\ntagReceiver, { |msg|
 	~orbitMonitorRoutine = Routine({
 		loop {
 			n.do { |i|
-				var v = try { ~orbitMonitorBuses[i].getSynchronous } { 0 };
-				var tag = ~orbitTags[i];
-				{
-					~orbitMeters[i].value = v.clip(0,1);
-					~orbitTagTexts[i].string = tag;
-				}.defer;
+				// タグ更新はサーバー通信不要なので常に動く
+				{ ~orbitTagTexts[i].string = ~orbitTags[i]; }.defer;
+				// メーターは非同期取得（ハングしてもRoutineが止まらない）
+				~orbitMonitorBuses[i].get({ |v|
+					{ ~orbitMeters[i].value = v.clip(0,1); }.defer;
+				});
 			};
 			0.05.wait;
 		}
