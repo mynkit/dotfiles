@@ -1158,7 +1158,13 @@ OSCdef(\ntagReceiver, { |msg|
 		LevelIndicator(~orbitWindow, Rect(130, 10 + (i*rowHeight), 170, 18));
 	};
 
-	Routine({
+	// 既存のRoutineがあれば停止
+	if(~orbitMonitorRoutine.notNil) {
+		~orbitMonitorRoutine.stop;
+		~orbitMonitorRoutine = nil;
+	};
+
+	~orbitMonitorRoutine = Routine({
 		loop {
 			n.do { |i|
 				var v = try { ~orbitMonitorBuses[i].getSynchronous } { 0 };
