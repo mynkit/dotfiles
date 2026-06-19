@@ -1058,7 +1058,7 @@ SynthDef(\blipHarmonics, {
 // =======================
 // Orbit monitor synth
 // =======================
-SynthDef(\orbitMonitor, { |inbus, outbus|
+SynthDef(\orbitMonitor, { |inbus, outbus, orbitIndex=0|
 	var sig;
 	var amp;
 
@@ -1066,6 +1066,8 @@ SynthDef(\orbitMonitor, { |inbus, outbus|
 	amp = Amplitude.kr(Mix(sig)).lag(0.1) * 10;
 
 	Out.kr(outbus, amp);
+	// 20Hzで振幅をlanguage側にプッシュ
+	SendReply.kr(Impulse.kr(20), '/orbitAmp', [orbitIndex, amp]);
 }).add;
 // =======================
 // Orbit monitor setup
@@ -1088,7 +1090,8 @@ SynthDef(\orbitMonitor, { |inbus, outbus|
 			\orbitMonitor,
 			[
 				\inbus, orbit.dryBus.index,
-				\outbus, bus.index
+				\outbus, bus.index,
+				\orbitIndex, orbit.orbitIndex
 			]
 		);
 
@@ -1158,25 +1161,43 @@ OSCdef(\ntagReceiver, { |msg|
 		LevelIndicator(~orbitWindow, Rect(130, 10 + (i*rowHeight), 170, 18));
 	};
 
-	// 既存のRoutineがあれば停止
-	if(~orbitMonitorRoutine.notNil) {
-		~orbitMonitorRoutine.stop;
-		~orbitMonitorRoutine = nil;
+	// 振幅をlanguage変数に記録するだけ（deferしない）
+	~orbitAmps = Array.fill(16, 0.0);
+	OSCdef(\orbitAmpReceiver, { |msg|
+		var orbit = msg[3];
+		var amp   = msg[4];
+		if(orbit.notNil && amp.notNil) {
+			~orbitAmps[orbit.asInteger] = amp.asFloat;
+		};
+	}, '/orbitAmp');
+
+	// GUI起動時に~orbitTagsの現在値を即時反映
+	if(~orbitTags.notNil) {
+		~orbitTags.do { |tag, i|
+			if(~orbitTagTexts[i].notNil) {
+				~orbitTagTexts[i].string = tag;
+			};
+		};
 	};
 
-	~orbitMonitorRoutine = Routine({
-		loop {
-			n.do { |i|
-				// タグ更新はサーバー通信不要なので常に動く
-				{ ~orbitTagTexts[i].string = ~orbitTags[i]; }.defer;
-				// メーターは非同期取得（ハングしてもRoutineが止まらない）
-				~orbitMonitorBuses[i].get({ |v|
-					{ ~orbitMeters[i].value = v.clip(0,1); }.defer;
-				});
+	// SkipJack1個でメーターとタグをまとめて10Hz更新
+	// deferが1回/100msなのでAppClockが詰まらない
+	// SkipJackはCmdPeriodで止まらない
+	if(~orbitSkipJack.notNil) { ~orbitSkipJack.stop };
+	~orbitSkipJack = SkipJack({
+		{
+			try {
+				n.do { |i|
+					if(~orbitMeters.notNil && ~orbitMeters[i].notNil) {
+						~orbitMeters[i].value = (~orbitAmps[i] ? 0).clip(0, 1);
+					};
+					if(~orbitTagTexts.notNil && ~orbitTagTexts[i].notNil) {
+						~orbitTagTexts[i].string = (~orbitTags[i] ? "");
+					};
+				};
 			};
-			0.05.wait;
-		}
-	}).play(AppClock);
+		}.defer;
+	}, 0.1, name: "OrbitMonitor");
 
 	"Orbit monitor GUI started".postln;
 };
@@ -1184,53 +1205,70 @@ OSCdef(\ntagReceiver, { |msg|
 	~orbitMonitorSetup.();
 	~orbitMonitorGUI.();
 };
-OSCdef(\ntagFromDirt, { |msg|
+// CmdPeriod後: ウィンドウを閉じてクリーンにし、1秒後に自動再オープン
+// ウィジェット更新を一切行わないことでAppClockのフリーズを回避
+CmdPeriod.add({
+	"CmdPeriod: closing orbit monitor window...".postln;
+	// ウィンドウを同期的に閉じる（deferなし＝Qtウィジェット更新を回避）
+	if(~orbitWindow.notNil) {
+		~orbitWindow.close;
+		~orbitWindow = nil;
+	};
+	~orbitMeters    = nil;
+	~orbitTagTexts  = nil;
+	// 1秒後にシンセ再作成＋GUI再オープン
+	SystemClock.sched(1.0, {
+		"CmdPeriod: reopening orbit monitor...".postln;
+		try {
+			if(~dirt.notNil && ~orbitMonitorBuses.notNil) {
+				// orbitMonitorシンセを再作成
+				~dirt.orbits.do { |orbit|
+					Synth.tail(s, \orbitMonitor, [
+						\inbus,      orbit.dryBus.index,
+						\outbus,     ~orbitMonitorBuses[orbit.orbitIndex].index,
+						\orbitIndex, orbit.orbitIndex
+					]);
+				};
+				// GUIを再オープン（AppClockが正常な状態になってから）
+				{ ~orbitMonitorGUI.(); }.defer;
+				"CmdPeriod: orbit monitor restored".postln;
+			};
+		} { |e| ("CmdPeriod restore error: " ++ e.messageString).postln; };
+		nil;
+	});
+});
+"Orbit monitor CmdPeriod handler registered".postln;
+// タグデータを更新するだけ（GUI更新はSkipJackが担当）
+~updateTag = { |orbit, tag|
+	if(~orbitTags.notNil) { ~orbitTags[orbit] = tag; };
+};
+
+// .fix でCmdPeriod後のOSCdef.freeAllでも消えないようにする
+OSCFunc({ |msg|
 	var tag = nil;
 	var orbit = nil;
-	// 3番目以降が key/value ペア
 	msg.drop(3).pairsDo { |key, val|
-		if(key == \ntag) {
-			tag = val;
-		};
-		if(key == \orbit) {
-			orbit = val;
-		};
+		if(key == \ntag) { tag = val; };
+		if(key == \orbit) { orbit = val; };
 	};
-	// 両方取れたら更新
 	if(tag.notNil && orbit.notNil) {
 		tag = tag.asString;
-		if(tag == "off") {
-			tag = "";
-		};
-		if(tag != ~orbitTags[orbit]) {
-			~orbitTags[orbit] = tag;
-		};
+		if(tag == "off") { tag = ""; };
+		~updateTag.(orbit, tag);
 	};
-}, '/dirt/play');
-OSCdef(\ntagDirect, { |msg|
+}, '/dirt/play').fix;
+OSCFunc({ |msg|
 	var orbit = msg[1];
-	var tag   = msg[2];
-	tag = tag.asString;
-
-	if(tag == "off") {
-		tag = "";
-	};
-	if(tag != ~orbitTags[orbit]) {
-		~orbitTags[orbit] = tag;
-	};
-}, '/ntag');
-~orbitTags = Array.fill(16, "");
-OSCdef(\ntagDirectAll, { |msg|
-	var tag = msg[1].asString;
-
+	var tag   = msg[2].asString;
 	if(tag == "off") { tag = ""; };
-
-	16.do { |orbit|
-		if(tag != ~orbitTags[orbit]) {
-			~orbitTags[orbit] = tag;
-		};
-	};
-}, '/ntagAll');
+	~updateTag.(orbit, tag);
+}, '/ntag').fix;
+~orbitTags = Array.fill(16, "");
+OSCFunc({ |msg|
+	var tag = msg[1].asString;
+	if(tag == "off") { tag = ""; };
+	16.do { |orbit| ~updateTag.(orbit, tag); };
+}, '/ntagAll').fix;
 // tidal sync n_set
 SynthDef(\tick, { |cycle=0, freq=440, amp=0.1, nodeId=1000|
 	SendReply.kr(
