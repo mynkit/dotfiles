@@ -7,6 +7,30 @@ sh git_completion_install.sh
 ln -s "$PWD/.zshrc" "$HOME/.zshrc"
 ```
 
+## bin (自作コマンド)
+
+`.zshrc` で `$HOME/.local/bin` に PATH が通っているので、そこにシンボリックリンクを貼る。
+
+```sh
+mkdir -p "$HOME/.local/bin"
+ln -s "$PWD/bin/menubar" "$HOME/.local/bin/menubar"
+```
+
+### menubar
+
+macOS のメニューバーの自動非表示を切り替える。
+GUI だと システム設定 → コントロールセンター → 「メニューバーを自動的に表示/非表示」。
+
+```sh
+menubar         # トグル
+menubar hide    # 常に隠す (カーソルを合わせたときだけ表示)
+menubar show    # 常に表示
+menubar status  # 現在の状態
+```
+
+`defaults write -g _HIHideMenuBar` は macOS がログイン時にしか読まず即座に反映されないため、
+System Events 経由で設定している。初回実行時に「システムイベント」へのオートメーション許可を求められる。
+
 ## neovim
 
 Apply `init.vim`
