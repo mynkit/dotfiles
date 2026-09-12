@@ -7,6 +7,40 @@ sh git_completion_install.sh
 ln -s "$PWD/.zshrc" "$HOME/.zshrc"
 ```
 
+## PowerShell (Windows)
+
+gitリポジトリ内でブランチ名と状態記号を表示するプロンプト設定 ([windows/Microsoft.PowerShell_profile.ps1](windows/Microsoft.PowerShell_profile.ps1))。
+
+```
+PS C:\Users\xxx\github\dotfiles (main* =) >
+```
+
+| 記号 | 意味 |
+|---|---|
+| `*` | 未ステージの変更あり |
+| `+` | ステージ済みの変更あり |
+| `=` | リモートと同期済み |
+| `>` / `<` | リモートより先行 / 遅れ |
+| `<>` | 分岐 (両方あり) |
+
+セットアップ (PowerShellで実行):
+
+```powershell
+# posh-git のインストール
+Install-Module posh-git -Scope CurrentUser -Force
+
+# プロファイル等のローカルスクリプトの実行を許可
+Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
+
+# プロファイルからこのリポジトリの設定を読み込む
+New-Item -ItemType Directory -Force (Split-Path $PROFILE) | Out-Null
+'. "$HOME\github\dotfiles\windows\Microsoft.PowerShell_profile.ps1"' | Set-Content $PROFILE
+```
+
+新しいPowerShellウィンドウを開くと反映される。
+
+注意: Windows PowerShell 5.1 はBOMなしUTF-8をANSIとして読むため、`windows/` 配下の `.ps1` はBOM付きUTF-8で保存すること。
+
 ## bin (自作コマンド)
 
 `.zshrc` で `$HOME/.local/bin` に PATH が通っているので、そこにシンボリックリンクを貼る。
