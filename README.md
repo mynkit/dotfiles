@@ -9,7 +9,10 @@ ln -s "$PWD/.zshrc" "$HOME/.zshrc"
 
 ## PowerShell (Windows)
 
-gitリポジトリ内でブランチ名と状態記号を表示するプロンプト設定 ([windows/Microsoft.PowerShell_profile.ps1](windows/Microsoft.PowerShell_profile.ps1))。
+[windows/Microsoft.PowerShell_profile.ps1](windows/Microsoft.PowerShell_profile.ps1) に以下の設定が入っている:
+
+- gitリポジトリ内でブランチ名と状態記号を表示するプロンプト
+- Mac/Linux風の行編集 (PSReadLine): `Ctrl+U`=行頭まで削除, `Ctrl+K`=行末まで削除
 
 ```
 PS C:\Users\xxx\github\dotfiles (main* =) >
@@ -40,6 +43,12 @@ New-Item -ItemType Directory -Force (Split-Path $PROFILE) | Out-Null
 新しいPowerShellウィンドウを開くと反映される。
 
 注意: Windows PowerShell 5.1 はBOMなしUTF-8をANSIとして読むため、`windows/` 配下の `.ps1` はBOM付きUTF-8で保存すること。
+
+## キーボード (Windows)
+
+おさかなキーボードをWindowsでもMacと同じ操作感で使うためのAutoHotkey設定は別リポジトリ:
+https://github.com/mynkit/osakana-mac-like
+（Cmd(Win)ショートカット変換、Win+Lロック対策のScancode Map、Chrome用Macショートカット、セットアップ手順込み）
 
 ## bin (自作コマンド)
 
