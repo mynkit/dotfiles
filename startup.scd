@@ -210,7 +210,7 @@ SynthDef(\superhammondSc, {|out, amp=1, decay=0, pan, freq, vibrato=0.5, vrate=7
 	sound = FreeVerb.ar(sound, reverb, 0.5);
 	// sound = NumChannels.ar([sound*(1-pan)/2, sound*(1+pan)/2], 2);
 	Out.ar(out, amp*sound!2);
-}, [0, 1, 1, 1, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3]).add;
+}, [0, 10, 1, 1, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3]).add;
 SynthDef("toumeiSynth", {
 	arg out, sustain=1, decay=0, pan, freq, vibrato=0.5, vrate=7, voice=0, perc=0, percf=2, accelerate=0, slide=0, sustainpedal=0.5;
 	var freqs, amps, sound, click, env, ampscale, attrel, fglide, bendSustain;
