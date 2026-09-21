@@ -24,12 +24,16 @@ GUI だと システム設定 → コントロールセンター → 「メニ�
 ```sh
 menubar         # トグル
 menubar hide    # 常に隠す (カーソルを合わせたときだけ表示)
-menubar show    # 常に表示
+menubar show    # 表示 (フルスクリーン時は隠す = macOS のデフォルト)
 menubar status  # 現在の状態
 ```
 
 `defaults write -g _HIHideMenuBar` は macOS がログイン時にしか読まず即座に反映されないため、
 System Events 経由で設定している。初回実行時に「システムイベント」へのオートメーション許可を求められる。
+
+フルスクリーン時にメニューバーを出すかどうか (`AppleMenuBarVisibleInFullscreen`) は
+各アプリが起動時に読むだけで、実行中のアプリには反映されない。
+切り替えると古い値のまま動くアプリが出るので、hide / show どちらでも「隠す」に固定している。
 
 ## neovim
 
