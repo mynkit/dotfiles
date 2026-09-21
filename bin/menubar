@@ -1,8 +1,11 @@
 #!/bin/bash
 # メニューバーの自動非表示を切り替える
-# 引数なし: トグル / hide: 常に隠す / show: 常に表示 / status: 現在の状態
+# 引数なし: トグル / hide: 常に隠す / show: 表示 (フルスクリーン時は隠す) / status: 現在の状態
 #
 # System Events 経由で設定する。defaults write と違い、ログインし直さずに反映される。
+#
+# フルスクリーン時の挙動 (AppleMenuBarVisibleInFullscreen) は各アプリが起動時に読むだけで
+# 実行中のアプリには反映されないため、切り替えずに常に「隠す」で固定する。
 set -euo pipefail
 
 se() { osascript -e "tell application \"System Events\" to tell dock preferences to $1"; }
@@ -11,11 +14,10 @@ current() { [ "$(se 'get autohide menu bar')" = "true" ] && echo hide || echo sh
 
 apply() {
   case "$1" in
-    hide) se 'set autohide menu bar to true' >/dev/null
-          defaults write -g AppleMenuBarVisibleInFullscreen -bool false ;;
-    show) se 'set autohide menu bar to false' >/dev/null
-          defaults write -g AppleMenuBarVisibleInFullscreen -bool true ;;
+    hide) se 'set autohide menu bar to true' >/dev/null ;;
+    show) se 'set autohide menu bar to false' >/dev/null ;;
   esac
+  defaults write -g AppleMenuBarVisibleInFullscreen -bool false
 }
 
 case "${1:-toggle}" in
