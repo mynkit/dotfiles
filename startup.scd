@@ -1055,6 +1055,82 @@ SynthDef(\blipHarmonics, {
 	sig = sig + (0.2*y*reverb);
 	Out.ar(out, (20 * sig * amp));
 }, [0.1, 5, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0, 0.1, 0.1, 0.1]).add;
+SynthDef(\daisySynth, {
+	|out=0, freq=880, amp=0.2, sustain=4, pan=0,
+	attackRatio=0.35, releaseRatio=0.25,
+	vibratoFreq=8.7, vibratoDepth=4,
+	fvMix=0.0, fvRoom=0.9, fvDamp=0.35|
+	var sig;
+	var env;
+	var vibrato;
+	var drift;
+	var attack;
+	var release;
+	var hold;
+	// sustain全体に対する割合
+	attack = sustain * attackRatio;
+	release = sustain * releaseRatio;
+	hold = (
+		sustain - attack - release
+	).max(0.001);
+	drift = LFNoise2.kr(1.3).range(-2.5, 2.5);
+	vibrato =
+	SinOsc.kr(vibratoFreq).range(
+		vibratoDepth.neg,
+		vibratoDepth
+	)
+	+ SinOsc.kr(
+		vibratoFreq * 0.7,
+		1.3
+	).range(
+		vibratoDepth * -0.5,
+		vibratoDepth * 0.5
+	)
+	+ LFNoise2.kr(1.2).range(
+		vibratoDepth * -0.375,
+		vibratoDepth * 0.375
+	);
+	freq = freq + drift + vibrato;
+	sig =
+	SinOsc.ar(freq)
+	+ (SinOsc.ar(freq * 2, 0.3) * 0.15)
+	+ (SinOsc.ar(freq * 3, 0.8) * 0.02)
+	+ (SinOsc.ar(freq * 4, 0.2) * 0.008);
+	sig = sig * (
+		1
+		+ SinOsc.kr(8.5, 1.2, 0.035)
+		+ LFNoise2.kr(2).range(-0.015, 0.015)
+	);
+	// 先にFreeVerb
+	sig = FreeVerb2.ar(
+		sig,
+		DelayC.ar(sig, 0.03, 0.012),
+		mix: fvMix.clip(0, 1),
+		room: fvRoom.clip(0, 1),
+		damp: fvDamp.clip(0, 1)
+	);
+	// 最後にEnvelope
+	// → FreeVerbの残響も含めて必ず0まで落とす
+	env = EnvGen.kr(
+		Env.linen(
+			attackTime: attack,
+			sustainTime: hold,
+			releaseTime: release,
+			level: 1,
+			curve: [3, 0, -4]
+		)
+	);
+	sig = sig * env * amp;
+	OffsetOut.ar(
+		out,
+		DirtPan.ar(
+			sig,
+			~dirt.numChannels,
+			pan,
+			1
+		)
+	);
+}).add;
 // =======================
 // Orbit monitor synth
 // =======================
