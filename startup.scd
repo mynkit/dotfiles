@@ -1131,6 +1131,83 @@ SynthDef(\daisySynth, {
 		)
 	);
 }).add;
+SynthDef(\eqsDrone, {
+	arg out=0, amp=1, freq=123, drift=0.02, spread=0.006, drive=2,
+	noise=0.15, air=0.45, lpf=1400, hpf=40, wobble=0.7, flutter=0.08, shift=0, pan=0;
+	// ゆっくり揺れる基音 (freq を中心に ±drift)
+	var f = freq * (1 + LFNoise1.kr(0.15).range(drift.neg, drift));
+	// 密集した不協和クラスタ: 元音源のピーク(89,104,123,133,158,177,201,211,240,265,316,371,485,630Hz)を
+	// 123Hz 基準の比率で並べたもの。spread で各部分音を微妙に揺らす
+	var ratios = [1, 0.72, 0.85, 1.08, 1.28, 1.44, 1.63, 1.72, 1.95, 2.02, 2.15, 2.57, 3.0, 3.94, 4.33, 5.1, 6.4, 8.0, 8.96, 9.4];
+	var amps   = [1, 0.4, 0.45, 0.3, 0.25, 0.35, 0.35, 0.45, 0.2, 0.25, 0.25, 0.2, 0.15, 0.2, 0.15, 0.1, 0.08, 0.08, 0.06, 0.06];
+	var osc = Mix.fill(20, { |i|
+		var r = ratios[i] * (1 + LFNoise1.kr(0.2 + (i * 0.05)).range(spread.neg, spread));
+		// shift=1 で基音側(比率<1.5)を引っ込め、上のクラスタ(1.5以上)を前に出す
+		var tilt = if(ratios[i] < 1.5, { 1 - (shift * 0.85) }, { 1 + (shift * 1.5) });
+		var a = amps[i] * tilt * LFNoise1.kr(0.3 + (i * 0.04)).range(0.5, 1);
+		// 基音まわりだけ少し角のある波形にして倍音を持たせる
+		if(i < 4, { VarSaw.ar(f * r, Rand(0, 1), 0.4) }, { SinOsc.ar(f * r, Rand(0, 2pi)) }) * a;
+	}) / 2.5;
+	// 共鳴ノイズ: 低域の BPF 群でザラつき/粒感を足す
+	var nz = BrownNoise.ar;
+	var resRatios = [1, 1.72, 2.57, 3.94];
+	var res = Mix.fill(4, { |i|
+		BPF.ar(nz, (f * resRatios[i]).clip(30, 4000), 0.08) * (1 / (i + 1))
+	}) * 6;
+	// 上の空気感 (1.5〜6kHz をゆっくり動く帯域 + 薄い全帯域ノイズ)
+	var airSig = BPF.ar(PinkNoise.ar, LFNoise1.kr(0.3).exprange(1500, 5500), 1.5) * 3
+	+ (HPF.ar(PinkNoise.ar, 1500) * 0.8);
+	// 音量の揺れ: ゆっくり(0.4Hz) x 中くらい(1.5Hz) x 細かい段差(6Hz)
+	var wob = LFNoise1.kr(0.4).range(1 - wobble, 1)
+	* LFNoise1.kr(1.5).range(1 - (wobble * 0.7), 1)
+	* LFNoise0.kr(6).range(1 - (wobble * 0.5), 1.15);
+	var sig = osc + (res * noise);
+	sig = (sig * drive).tanh / (drive.max(1).sqrt);
+	sig = LPF.ar(sig, lpf);
+	sig = sig + (airSig * air);
+	sig = HPF.ar(sig, hpf);
+	// ゆっくりした揺れ + かすかな19Hzの震え
+	sig = sig * wob;
+	sig = sig * (1 - (flutter * SinOsc.kr(19).range(0, 1)));
+	Out.ar(out, Pan2.ar(sig * 1.8 * amp, pan));
+}, [0.1, 8.5, 1, 1, 0.5, 0.5, 0.5, 15.5, 0.5, 0.5, 0.5, 0.5, 1, 0.2]).add;
+SynthDef(\personare, {
+	arg out=0, amp=1,
+	freq1=77.6, freq2=124.5, freq3=174.6, freq4=207.7, freq5=233.1, freq6=370.6,
+	gain1=1, gain2=1, gain3=1, gain4=1, gain5=1, gain6=1,
+	rq=0.02, harm=0.6, noise=0.5, nlpf=1500, shimmer=0.25, drift=0.004, grain=0.3,
+	shelf=(-15), shelffreq=2400, lpf=20000;
+	var freqs = [freq1, freq2, freq3, freq4, freq5, freq6];
+	var gains = [gain1, gain2, gain3, gain4, gain5, gain6];
+	var harmAmp = [1, 0.7, 0.5, 0.4, 0.3, 0.25, 0.2, 0.15];
+	// 左右で独立したノイズ源 (ステレオの広がりはここから生まれる)
+	var src = { PinkNoise.ar } ! 2;
+	// 息っぽい和音: 各音の基音+倍音の位置に細い BPF を置き、ノイズを共鳴させる
+	var tone = Mix.fill(6, { |i|
+		var f = freqs[i] * (1 + LFNoise1.kr(0.2 + (i * 0.03), drift));
+		var g = gains[i] * LFNoise1.kr(0.3 + (i * 0.05)).range(0.6, 1);
+		Mix.fill(8, { |h|
+			var a = harmAmp[h] * if(h == 0, 1, harm);
+			BPF.ar(src, (f * (h + 1)).clip(30, 12000), rq) * a
+		}) * g
+	});
+	// 広帯域のノイズ床 (ゆっくり動く帯域の強調と左右別のムラを付ける)
+	var bed = (HPF.ar(src, 60) * 1.6
+		+ (BPF.ar(src, { LFNoise1.kr(0.25).exprange(600, 6000) } ! 2, 0.6) * 2.5))
+		* ({ LFNoise1.kr(1.5).range(0.6, 1.2) } ! 2) * noise;
+	// ときどき混ざる小さな粒 (両チャンネル別々に)
+	var grains = Decay2.ar(Dust.ar(0.4 ! 2), 0.002, 0.08) * HPF.ar(src, 1500) * grain * 5;
+	// nlpf でノイズ床と粒の高域だけをカットする (和音には掛からない)
+	var sig = (tone * (0.09 / rq).sqrt * 7) + LPF.ar(LPF.ar(bed + grains, nlpf), nlpf);
+	// 出音全体の EQ (Logic の設定に合わせたもの): shelffreq 以上を shelf dB 下げるハイシェルフ + 全体の LPF
+	// shelf=0 でシェルフなし、lpf=20000 で LPF なし
+	sig = BHiShelf.ar(sig, shelffreq.clip(100, 18000), 0.7, shelf);
+	sig = LPF.ar(sig, lpf.clip(100, 20000));
+	// ゆっくりした揺らぎ (左右で別々に)
+	sig = sig * ({ LFNoise1.kr(0.4).range(1 - shimmer, 1) } ! 2);
+	sig = (sig * 0.8).tanh * 0.95;
+	Out.ar(out, sig * amp);
+}, [0, 10.1, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]).add;
 // =======================
 // Orbit monitor synth
 // =======================
